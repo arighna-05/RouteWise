@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #1A1E24;
+    color: #E5E9F0;
+    min-height: 100vh;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    background-color: #88C0D0;
+    color: #1A1E24;
+  }
+}
+
+/* Custom sleek Nordic scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(36, 41, 51, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 192, 208, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(136, 192, 208, 0.55);
+}
+
+/* Nordic Glassmorphism */
+.glass-panel {
+  background: rgba(46, 52, 64, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(216, 222, 233, 0.12);
+}
+
+.glass-card {
+  background: rgba(46, 52, 64, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(76, 86, 106, 0.4);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  background: rgba(59, 66, 82, 0.85);
+  border-color: rgba(136, 192, 208, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(136, 192, 208, 0.25);
+}
+
+/* Nordic Gradients */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#88C0D0] via-[#8FBCBB] to-[#81A1C1];
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, #88C0D0 0%, #81A1C1 50%, #5E81AC 100%);
+  color: #1A1E24;
+}
+
+.gradient-aurora {
+  background: linear-gradient(135deg, #A3BE8C 0%, #8FBCBB 50%, #88C0D0 100%);
+  color: #1A1E24;
+}
+
+.nordic-glow {
+  box-shadow: 0 0 25px -5px rgba(136, 192, 208, 0.35);
+}
+
+/* =========================================================================
+   Handwritten Paper Journal & Pen Ink Aesthetics
+   ========================================================================= */
+.font-handwritten {
+  font-family: 'Caveat', cursive, sans-serif;
+}
+
+.font-handwritten-body {
+  font-family: 'Patrick Hand', cursive, sans-serif;
+}
+
+.font-handwritten-title {
+  font-family: 'Kalam', 'Caveat', cursive, sans-serif;
+}
+
+/* Warm, physical lined notebook paper sheet */
+.paper-journal {
+  background-color: #fdfaf2;
+  color: #1e293b;
+  position: relative;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+/* Subtle notebook horizontal ruled lines */
+.paper-ruled-lines {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    rgba(191, 219, 254, 0.45) 31px,
+    rgba(191, 219, 254, 0.45) 32px
+  );
+  background-position: 0 8px;
+}
+
+/* Notebook left margin vertical guide */
+.paper-margin-guide {
+  position: relative;
+}
+.paper-margin-guide::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3.25rem;
+  width: 1.5px;
+  background-color: rgba(244, 63, 94, 0.35);
+  pointer-events: none;
+}
+
+/* Fountain pen and pencil ink colors */
+.ink-fountain-blue {
+  color: #1e3a8a; /* Deep royal blue ink */
+}
+
+.ink-fountain-navy {
+  color: #0f274a;
+}
+
+.ink-ballpoint-blue {
+  color: #2563eb;
+}
+
+.ink-pencil {
+  color: #4b5563;
+}
+
+.ink-stamp-red {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Highlighting like a real marker pen */
+.marker-highlight {
+  background: linear-gradient(104deg, rgba(254, 240, 138, 0) 0.9%, rgba(254, 240, 138, 0.7) 2.4%, rgba(254, 240, 138, 0.5) 5.8%, rgba(254, 240, 138, 0.7) 93%, rgba(254, 240, 138, 0.2) 96%, rgba(254, 240, 138, 0) 98%);
+  padding: 0.1em 0.35em;
+  border-radius: 0.2em;
+}
+
+.marker-highlight-cyan {
+  background: linear-gradient(104deg, rgba(165, 243, 252, 0) 0.9%, rgba(165, 243, 252, 0.7) 2.4%, rgba(165, 243, 252, 0.5) 5.8%, rgba(165, 243, 252, 0.7) 93%, rgba(165, 243, 252, 0.2) 96%, rgba(165, 243, 252, 0) 98%);
+  padding: 0.1em 0.35em;
+  border-radius: 0.2em;
+}
+
+/* Print Styles for Exporting / Printing the Handwritten Plan */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt;
+  }
+
+  /* Hide navigation, fixed widgets, floating assist, action bars in print */
+  .no-print,
+  nav,
+  header,
+  aside,
+  #floating-ai-assistant,
+  button:not(.print-keep),
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Expand print target to full page */
+  .paper-journal {
+    box-shadow: none !important;
+    border: none !important;
+    background-color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .print-page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
