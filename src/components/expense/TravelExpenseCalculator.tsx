@@ -18,13 +18,14 @@ import {
 } from 'lucide-react';
 import { useTrip } from '../../context/TripContext';
 import { useViewMode } from '../../context/ViewModeContext';
+import { getCurrencySymbol, getDefaultCurrencyRates } from '../../utils/currency';
 
 export const TravelExpenseCalculator: React.FC = () => {
   const { activeTrip, updateTripBudget } = useTrip();
   const { isMobileView } = useViewMode();
 
-  const isINR = (activeTrip.currency || 'INR').includes('INR');
-  const currencySymbol = isINR ? '₹' : (activeTrip.currency?.split(' ')[0] || '$');
+  const rates = useMemo(() => getDefaultCurrencyRates(activeTrip.currency), [activeTrip.currency]);
+  const currencySymbol = useMemo(() => getCurrencySymbol(activeTrip.currency), [activeTrip.currency]);
 
   const headsCount = activeTrip.groupProfile?.numberOfHeads || 2;
   const daysCount = activeTrip.daysCount || 3;
@@ -32,7 +33,7 @@ export const TravelExpenseCalculator: React.FC = () => {
   const defaultRooms = Math.max(1, Math.ceil(headsCount / 2));
 
   // 1. Hotel / Lodging State
-  const [hotelCostPerNight, setHotelCostPerNight] = useState<number>(() => isINR ? 3200 : 120);
+  const [hotelCostPerNight, setHotelCostPerNight] = useState<number>(() => rates.hotelPerNight);
   const [hotelRooms, setHotelRooms] = useState<number>(defaultRooms);
   const [hotelNights, setHotelNights] = useState<number>(defaultNights);
 
@@ -45,15 +46,21 @@ export const TravelExpenseCalculator: React.FC = () => {
 
   // 3. Train / Plane / Long-Distance Transit
   const [transitMode, setTransitMode] = useState<'plane' | 'train' | 'cab'>('train');
-  const [transitCostPerPerson, setTransitCostPerPerson] = useState<number>(() => {
-    return isINR ? 1800 : 90;
-  });
+  const [transitCostPerPerson, setTransitCostPerPerson] = useState<number>(() => rates.transitPerPerson);
 
   // 4. Food & Dining
-  const [foodCostPerPersonDay, setFoodCostPerPersonDay] = useState<number>(() => isINR ? 800 : 35);
+  const [foodCostPerPersonDay, setFoodCostPerPersonDay] = useState<number>(() => rates.foodPerPersonDay);
 
   // 5. Miscellaneous & Local Expenses
-  const [miscellaneousCost, setMiscellaneousCost] = useState<number>(() => isINR ? 2500 : 100);
+  const [miscellaneousCost, setMiscellaneousCost] = useState<number>(() => rates.miscBudget);
+
+  // Keep state updated if trip currency or rates change
+  React.useEffect(() => {
+    setHotelCostPerNight(rates.hotelPerNight);
+    setTransitCostPerPerson(rates.transitPerPerson);
+    setFoodCostPerPersonDay(rates.foodPerPersonDay);
+    setMiscellaneousCost(rates.miscBudget);
+  }, [rates]);
 
   // Success message after sync
   const [isSynced, setIsSynced] = useState<boolean>(false);

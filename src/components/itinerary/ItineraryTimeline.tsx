@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
   Plus, 
   MapPin, 
@@ -20,16 +20,14 @@ import {
   Ticket,
   CalendarPlus,
   Clock,
-  Search,
   Check,
   Zap,
   Route,
   BookOpen
 } from 'lucide-react';
 import { useTrip } from '../../context/TripContext';
-import type { ActivityCategory, AttractionRecommendation, ItineraryItem } from '../../types/travel';
+import type { ActivityCategory, ItineraryItem } from '../../types/travel';
 import { getWeatherForTripDay } from '../../services/weatherApi';
-import { getTouristAttractions } from '../../services/geminiService';
 import { 
   estimateTransitBetweenSpots, 
   calculateNextScheduledTime, 
@@ -38,12 +36,17 @@ import {
 import { TripConfirmedModal } from './TripConfirmedModal';
 import { HandwrittenPaperJournal } from './HandwrittenPaperJournal';
 import { useViewMode } from '../../context/ViewModeContext';
+import { getCurrencySymbol, formatCurrency } from '../../utils/currency';
 
 interface ItineraryTimelineProps {
+  onOpenAddPlan?: () => void;
   onOpenAttractions?: () => void;
 }
 
-export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttractions }) => {
+export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ 
+  onOpenAddPlan, 
+  onOpenAttractions 
+}) => {
   const { 
     activeTrip, 
     selectedDay, 
@@ -64,58 +67,6 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPaperJournalOpen, setIsPaperJournalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
-
-  // Quick Inline Note-Taking Bar State
-  const [quickTitle, setQuickTitle] = useState('');
-  const [quickTime, setQuickTime] = useState('10:00');
-  const [quickCategory, setQuickCategory] = useState<ActivityCategory>('sightseeing');
-  const [quickCost, setQuickCost] = useState<number | ''>('');
-  const [showAttractionPicker, setShowAttractionPicker] = useState(false);
-  const [cityAttractions, setCityAttractions] = useState<AttractionRecommendation[]>([]);
-
-  // Load destination attractions for quick search picker
-  useEffect(() => {
-    if (activeTrip?.city) {
-      getTouristAttractions(activeTrip.city).then((res) => {
-        if (Array.isArray(res)) setCityAttractions(res);
-      });
-    }
-  }, [activeTrip?.city]);
-
-  // Dynamic destination-aware suggestions for quick add placeholder
-  const destinationSuggestions = useMemo(() => {
-    const cityName = activeTrip?.cityName || 'your destination';
-    const cityLower = cityName.toLowerCase();
-    
-    // 1. If real loaded attractions for this specific city exist, use the top 3
-    if (cityAttractions && cityAttractions.length >= 2) {
-      const topSpots = cityAttractions.slice(0, 3).map(a => a.title);
-      return `✍️ e.g. "Arrive at hotel", ${topSpots.map(s => `"${s}"`).join(', ')}`;
-    }
-
-    // 2. Comprehensive destination-aware curated highlights
-    if (cityLower.includes('tokyo') || cityLower.includes('japan')) {
-      return `✍️ e.g. "Arrive at hotel", "Senso-ji Temple", "Shibuya Crossing", "Shinjuku Gyoen"`;
-    } else if (cityLower.includes('kyoto')) {
-      return `✍️ e.g. "Arrive at ryokan", "Fushimi Inari Shrine", "Kinkaku-ji", "Arashiyama Bamboo Grove"`;
-    } else if (cityLower.includes('osaka')) {
-      return `✍️ e.g. "Check in", "Dotonbori food walk", "Osaka Castle", "Universal Studios"`;
-    } else if (cityLower.includes('paris') || cityLower.includes('france')) {
-      return `✍️ e.g. "Arrive at hotel", "Eiffel Tower", "Louvre Museum", "Montmartre Cafe"`;
-    } else if (cityLower.includes('rome') || cityLower.includes('italy')) {
-      return `✍️ e.g. "Check in", "Colosseum", "Trevi Fountain", "Vatican Museums"`;
-    } else if (cityLower.includes('london') || cityLower.includes('uk')) {
-      return `✍️ e.g. "Arrive at hotel", "Tower Bridge", "British Museum", "Big Ben"`;
-    } else if (cityLower.includes('bali') || cityLower.includes('indonesia')) {
-      return `✍️ e.g. "Arrive at resort", "Uluwatu Temple", "Tegallalang Rice Terraces", "Seminyak Beach"`;
-    } else if (cityLower.includes('darjeeling')) {
-      return `✍️ e.g. "Arrive at hotel", "Tiger Hill sunrise", "Batasia Loop", "Glenary's Bakery"`;
-    } else if (cityLower.includes('sikkim') || cityLower.includes('gangtok')) {
-      return `✍️ e.g. "Arrive at hotel", "MG Marg walk", "Tsomgo Lake", "Rumtek Monastery"`;
-    }
-
-    return `✍️ e.g. "Arrive at hotel", "Explore downtown", "Visit top landmark in ${cityName}"`;
-  }, [activeTrip?.cityName, cityAttractions]);
 
   // Modal Form State
   const [formData, setFormData] = useState<{
@@ -259,71 +210,6 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
     updateAllActivities([...otherDayItems, ...updatedDayItems]);
     setAutoCalcMessage(`✓ Auto-calculated Day ${selectedDay} timings with realistic transit times!`);
     setTimeout(() => setAutoCalcMessage(''), 4000);
-  };
-
-  // Quick add from inline bar with auto-transit calculation
-  const handleQuickAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanTitle = quickTitle.trim();
-    if (!cleanTitle) return;
-
-    const lastItem = dayItems.length > 0 ? dayItems[dayItems.length - 1] : null;
-    const transitEst = lastItem
-      ? estimateTransitBetweenSpots(lastItem.title, cleanTitle)
-      : estimateTransitBetweenSpots('Hotel', cleanTitle);
-
-    let assignedTime = quickTime;
-    // Auto-calculate time if user left time unchanged or empty
-    if (lastItem && (!quickTime || quickTime === '10:00')) {
-      const prevDuration = getEstimatedVisitDuration(lastItem.category, lastItem.title);
-      assignedTime = calculateNextScheduledTime(lastItem.time, prevDuration, transitEst.durationMinutes);
-    }
-
-    const location = `${cleanTitle}, ${activeTrip.cityName}`;
-
-    addActivity({
-      dayIndex: selectedDay,
-      time: assignedTime || '10:00',
-      title: cleanTitle,
-      location,
-      category: quickCategory,
-      cost: Number(quickCost) || 0,
-      notes: `Scheduled for Day ${selectedDay} in ${activeTrip.cityName}.`,
-      openingHours: '09:00 - 18:00',
-      transitInfo: transitEst.trafficAdvice,
-    });
-
-    setQuickTitle('');
-    setQuickCost('');
-  };
-
-  // 1-Click add from landmark picker with auto-transit calculation
-  const handleAddLandmark = (attr: AttractionRecommendation) => {
-    const lastItem = dayItems.length > 0 ? dayItems[dayItems.length - 1] : null;
-    const transitEst = lastItem
-      ? estimateTransitBetweenSpots(lastItem.title, attr.title)
-      : estimateTransitBetweenSpots('Hotel', attr.title);
-
-    let assignedTime = quickTime;
-    if (lastItem && (!quickTime || quickTime === '10:00')) {
-      const prevDuration = getEstimatedVisitDuration(lastItem.category, lastItem.title);
-      assignedTime = calculateNextScheduledTime(lastItem.time, prevDuration, transitEst.durationMinutes);
-    }
-
-    addActivity({
-      dayIndex: selectedDay,
-      time: assignedTime || '10:00',
-      title: attr.title,
-      location: `${attr.title}, ${activeTrip.cityName}`,
-      category: attr.category,
-      cost: attr.estimatedCost,
-      notes: attr.description,
-      openingHours: attr.openingHours,
-      bestTimeToVisit: attr.bestTimeToVisit,
-      transitInfo: transitEst.trafficAdvice,
-      isMustVisit: attr.isMustVisit,
-    });
-    setShowAttractionPicker(false);
   };
 
   const handleOpenAddModal = () => {
@@ -519,7 +405,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <div>
                 <span className="text-[9px] text-[#7E859B] uppercase font-bold tracking-wider block">Day {selectedDay} Cost</span>
                 <span className="text-xs sm:text-sm font-black text-[#1A1D2E] font-mono">
-                  {activeTrip.currency} {dayEstimatedCost}
+                  {formatCurrency(dayEstimatedCost, activeTrip.currency)}
                 </span>
               </div>
 
@@ -528,7 +414,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <div>
                 <span className="text-[9px] text-[#7E859B] uppercase font-bold tracking-wider block">Total Tour Cost</span>
                 <span className="text-xs sm:text-sm font-black text-[#5D5FEF] font-mono">
-                  {activeTrip.currency} {totalTripEstimatedCost}
+                  {formatCurrency(totalTripEstimatedCost, activeTrip.currency)}
                 </span>
               </div>
             </div>
@@ -578,7 +464,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
             <div>
               <span className="text-[10px] text-[#D8DEE9]/70 uppercase font-medium block">Day {selectedDay} Cost</span>
               <span className="text-sm font-bold text-[#ECEFF4] font-mono">
-                {activeTrip.currency} {dayEstimatedCost}
+                {formatCurrency(dayEstimatedCost, activeTrip.currency)}
               </span>
             </div>
 
@@ -587,7 +473,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
             <div>
               <span className="text-[10px] text-[#D8DEE9]/70 uppercase font-medium block">Total Tour Cost</span>
               <span className="text-sm font-bold text-[#A3BE8C] font-mono">
-                {activeTrip.currency} {totalTripEstimatedCost}
+                {formatCurrency(totalTripEstimatedCost, activeTrip.currency)}
               </span>
             </div>
 
@@ -604,236 +490,74 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
       )}
 
       {/* ========================================================= */}
-      {/* DAY SCHEDULE: QUICK PLACE ADD BAR                        */}
+      {/* DAY SCHEDULE: ACTION BAR                                  */}
       {/* ========================================================= */}
       <div className={
         isMobileView 
-          ? "matte-card rounded-[24px] p-4 border border-[#E8ECF5] shadow-sm text-[#1A1D2E] space-y-3" 
-          : "glass-card rounded-2xl p-3.5 sm:p-4 border border-[#88C0D0]/25 bg-gradient-to-r from-[#242933]/95 via-[#2E3440]/90 to-[#242933]/95 space-y-3"
+          ? "matte-card rounded-[22px] p-3.5 border border-[#E8ECF5] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3" 
+          : "glass-card rounded-2xl p-3.5 sm:p-4 border border-[#3B4252] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       }>
-        {/* Header & Quick Action Buttons */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wide ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#88C0D0]'}`}>
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>Day {selectedDay} Schedule & Activities</span>
-            </div>
-
-            {/* Auto-Calculate Day Timings Button */}
-            {dayItems.length > 0 && (
-              <button
-                type="button"
-                onClick={handleAutoCalculateDaySchedule}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-colors shadow-sm whitespace-nowrap shrink-0 active:scale-95 border ${
-                  isMobileView
-                    ? 'bg-[#EAFBF3] border-[#A3E5C3] text-[#00BA88] hover:bg-[#D7F7E8]'
-                    : 'bg-[#A3BE8C]/20 hover:bg-[#A3BE8C]/30 border-[#A3BE8C]/40 text-[#A3BE8C]'
-                }`}
-                title="Automatically calculate day timings and transit durations"
-              >
-                <Zap className="w-3 h-3" />
-                <span>⚡ Auto-Calculate</span>
-              </button>
-            )}
+        <div className="flex items-center gap-2.5">
+          <div className={`p-2 rounded-xl shrink-0 ${isMobileView ? 'bg-[#EEF0FF] text-[#5D5FEF]' : 'bg-[#88C0D0]/10 text-[#88C0D0]'}`}>
+            <Clock className="w-4 h-4" />
           </div>
-
-          {/* Quick Helper Shortcuts Bar */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar">
-            {/* Link to Tourist Attraction Special Section */}
-            {onOpenAttractions && (
-              <button
-                type="button"
-                onClick={onOpenAttractions}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95 border ${
-                  isMobileView
-                    ? 'bg-[#FFF4E5] border-[#FDE68A] text-[#D97706] hover:bg-[#FEF3C7]'
-                    : 'bg-[#EBCB8B]/15 hover:bg-[#EBCB8B]/25 border-[#EBCB8B]/30 text-[#EBCB8B]'
-                }`}
-                title="Browse Tourist Attractions"
-              >
-                <Compass className="w-3 h-3" />
-                <span>Tourist Attractions</span>
-              </button>
-            )}
-
-            {/* Quick Landmark Picker Toggle */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowAttractionPicker(!showAttractionPicker)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95 border ${
-                  isMobileView
-                    ? 'bg-[#EEF0FF] border-[#E0E2FD] text-[#5D5FEF] hover:bg-[#E5E7FD]'
-                    : 'bg-[#88C0D0]/15 hover:bg-[#88C0D0]/25 border-[#88C0D0]/30 text-[#88C0D0]'
-                }`}
-              >
-                <Search className="w-3 h-3" />
-                <span>Pick Landmark</span>
-              </button>
-
-              {/* Landmark Dropdown Menu */}
-              {showAttractionPicker && (
-                <div className={`absolute left-0 sm:right-0 sm:left-auto mt-2 w-72 max-h-64 overflow-y-auto rounded-2xl shadow-2xl p-2 z-30 divide-y border ${
-                  isMobileView
-                    ? 'bg-white border-[#E2E6F0] divide-[#F0F2F8]'
-                    : 'bg-[#242933] border-[#3B4252] divide-[#2E3440]'
-                }`}>
-                  <div className={`px-2 py-1 text-[11px] font-bold uppercase ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]'}`}>
-                    Top Attractions in {activeTrip.cityName}
-                  </div>
-                  {cityAttractions.length > 0 ? (
-                    cityAttractions.map((attr) => (
-                      <button
-                        key={attr.id}
-                        type="button"
-                        onClick={() => handleAddLandmark(attr)}
-                        className={`w-full p-2 text-left rounded-xl transition-colors flex items-start gap-2.5 group ${
-                          isMobileView ? 'hover:bg-[#F4F6FB]' : 'hover:bg-[#3B4252]/80'
-                        }`}
-                      >
-                        <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 font-bold transition-colors ${
-                          isMobileView
-                            ? 'bg-[#EEF0FF] text-[#5D5FEF] group-hover:bg-[#5D5FEF] group-hover:text-white'
-                            : 'bg-[#88C0D0]/15 text-[#88C0D0] group-hover:bg-[#88C0D0] group-hover:text-[#1A1E24]'
-                        }`}>
-                          <Plus className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className={`text-xs font-bold truncate ${
-                            isMobileView
-                              ? 'text-[#1A1D2E] group-hover:text-[#5D5FEF]'
-                              : 'text-[#ECEFF4] group-hover:text-[#88C0D0]'
-                          }`}>
-                            {attr.title}
-                          </div>
-                          <div className={`text-[10px] truncate ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>
-                            {attr.bestTimeToVisit || attr.openingHours} • {attr.currency} {attr.estimatedCost}
-                          </div>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <p className={`p-3 text-xs text-center ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>Loading landmarks...</p>
-                  )}
-                </div>
-              )}
-            </div>
+          <div>
+            <h4 className={`text-xs sm:text-sm font-black ${isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'}`}>
+              Day {selectedDay} Schedule ({dayItems.length} {dayItems.length === 1 ? 'place' : 'places'})
+            </h4>
+            <p className={`text-[11px] ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>
+              Chronological day timeline & transit routes
+            </p>
           </div>
         </div>
 
-        {/* Quick Add Form - Responsive Dual Layout */}
-        {isMobileView ? (
-          <form onSubmit={handleQuickAdd} className="space-y-2">
-            {/* Row 1: Full-Width Title / Activity Input */}
-            <input
-              type="text"
-              value={quickTitle}
-              onChange={(e) => setQuickTitle(e.target.value)}
-              placeholder={destinationSuggestions}
-              className="w-full px-3.5 py-2.5 rounded-xl matte-input text-xs font-medium"
-            />
-
-            {/* Row 2: Time, Category, Cost, and Add Button in comfortable 2x2 grid */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              {/* Time Picker */}
-              <input
-                type="time"
-                value={quickTime}
-                onChange={(e) => setQuickTime(e.target.value)}
-                className="w-full px-2.5 py-2 rounded-xl matte-input text-xs font-mono"
-                title="Scheduled Time"
-              />
-
-              {/* Category Select */}
-              <select
-                value={quickCategory}
-                onChange={(e) => setQuickCategory(e.target.value as ActivityCategory)}
-                className="w-full px-2 py-2 rounded-xl matte-input text-xs"
-              >
-                <option value="sightseeing">Sightseeing</option>
-                <option value="food">Food & Dining</option>
-                <option value="lodging">Hotel / Stay</option>
-                <option value="activity">Activity / Tour</option>
-                <option value="relaxation">Relaxation / Walk</option>
-                <option value="transport">Transit / Travel</option>
-              </select>
-
-              {/* Cost input */}
-              <input
-                type="number"
-                min="0"
-                value={quickCost}
-                onChange={(e) => setQuickCost(e.target.value ? Number(e.target.value) : '')}
-                placeholder={`Cost (${activeTrip.currency})`}
-                className="w-full px-2.5 py-2 rounded-xl matte-input text-xs font-mono"
-              />
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={!quickTitle.trim()}
-                className="w-full py-2 px-3 rounded-xl bg-[#5D5FEF] hover:bg-[#4D4FD9] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-40 active:scale-95 whitespace-nowrap"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Add to Day {selectedDay}</span>
-              </button>
-            </div>
-          </form>
-        ) : (
-          <form onSubmit={handleQuickAdd} className="flex flex-col sm:flex-row items-center gap-2">
-            {/* Time Picker */}
-            <input
-              type="time"
-              value={quickTime}
-              onChange={(e) => setQuickTime(e.target.value)}
-              className="w-full sm:w-36 shrink-0 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
-              title="Scheduled Time"
-            />
-
-            {/* Place Title Input */}
-            <input
-              type="text"
-              value={quickTitle}
-              onChange={(e) => setQuickTitle(e.target.value)}
-              placeholder={destinationSuggestions}
-              className="flex-1 w-full px-4 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-medium focus:ring-2 focus:ring-[#88C0D0]"
-            />
-
-            {/* Category Select */}
-            <select
-              value={quickCategory}
-              onChange={(e) => setQuickCategory(e.target.value as ActivityCategory)}
-              className="w-full sm:w-32 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs focus:ring-2 focus:ring-[#88C0D0]"
-            >
-              <option value="sightseeing">Sightseeing</option>
-              <option value="food">Food & Dining</option>
-              <option value="lodging">Hotel / Stay</option>
-              <option value="activity">Activity / Tour</option>
-              <option value="relaxation">Relaxation / Walk</option>
-              <option value="transport">Transit / Travel</option>
-            </select>
-
-            {/* Cost input */}
-            <input
-              type="number"
-              min="0"
-              value={quickCost}
-              onChange={(e) => setQuickCost(e.target.value ? Number(e.target.value) : '')}
-              placeholder={`Cost (${activeTrip.currency})`}
-              className="w-full sm:w-28 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
-            />
-
-            {/* Submit Button */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {onOpenAddPlan && (
             <button
-              type="submit"
-              disabled={!quickTitle.trim()}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#88C0D0] hover:bg-[#81A1C1] text-[#1A1E24] text-xs font-extrabold transition-all shadow-glow flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-40 active:scale-95 whitespace-nowrap"
+              type="button"
+              onClick={onOpenAddPlan}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
+                isMobileView
+                  ? 'bg-[#5D5FEF] text-white hover:bg-[#4D4FD9]'
+                  : 'bg-[#88C0D0] text-[#1A1E24] hover:bg-[#81A1C1]'
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              <span>Add to Day {selectedDay}</span>
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>+ Add Plan to Day {selectedDay}</span>
             </button>
-          </form>
-        )}
+          )}
+
+          {dayItems.length > 0 && (
+            <button
+              type="button"
+              onClick={handleAutoCalculateDaySchedule}
+              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-colors shadow-sm whitespace-nowrap active:scale-95 border ${
+                isMobileView
+                  ? 'bg-[#EAFBF3] border-[#A3E5C3] text-[#00BA88] hover:bg-[#D7F7E8]'
+                  : 'bg-[#A3BE8C]/20 hover:bg-[#A3BE8C]/30 border-[#A3BE8C]/40 text-[#A3BE8C]'
+              }`}
+              title="Automatically calculate day timings and transit durations"
+            >
+              <Zap className="w-3 h-3" />
+              <span>⚡ Auto-Calculate</span>
+            </button>
+          )}
+
+          {onOpenAttractions && (
+            <button
+              type="button"
+              onClick={onOpenAttractions}
+              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold flex items-center gap-1 transition-colors whitespace-nowrap active:scale-95 border ${
+                isMobileView
+                  ? 'bg-[#FFF4E5] border-[#FDE68A] text-[#D97706] hover:bg-[#FEF3C7]'
+                  : 'bg-[#EBCB8B]/15 hover:bg-[#EBCB8B]/25 border-[#EBCB8B]/30 text-[#EBCB8B]'
+              }`}
+            >
+              <Compass className="w-3 h-3" />
+              <span>Attractions</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ========================================================= */}
@@ -880,8 +604,8 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
           {dayItems.length === 0 ? (
             <div className={
               isMobileView
-                ? "matte-card rounded-[24px] p-8 border border-dashed border-[#CBD5E1] text-center space-y-3"
-                : "glass-card rounded-2xl p-10 border border-dashed border-[#3B4252] text-center space-y-3"
+                ? "matte-card rounded-[24px] p-8 border border-dashed border-[#CBD5E1] text-center space-y-4"
+                : "glass-card rounded-2xl p-10 border border-dashed border-[#3B4252] text-center space-y-4"
             }>
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto ${
                 isMobileView ? 'bg-[#EEF0FF] text-[#5D5FEF]' : 'bg-[#242933] text-[#D8DEE9]'
@@ -891,9 +615,25 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <div className="space-y-1">
                 <h4 className={`font-bold text-sm ${isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'}`}>No places scheduled for Day {selectedDay} yet</h4>
                 <p className={`text-xs max-w-sm mx-auto ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]'}`}>
-                  Add a place or activity above, pick from the landmark dropdown, or check the recommendations tab.
+                  Build your tour plan with quick presets, custom activities, or top attractions.
                 </p>
               </div>
+              {onOpenAddPlan && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={onOpenAddPlan}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 shadow-sm active:scale-95 ${
+                      isMobileView
+                        ? 'bg-[#5D5FEF] text-white hover:bg-[#4D4FD9]'
+                        : 'bg-[#88C0D0] text-[#1A1E24] hover:bg-[#81A1C1]'
+                    }`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add First Tour Plan for Day {selectedDay}</span>
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -1038,7 +778,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                       <div className="text-left sm:text-right">
                         <span className={`text-[10px] uppercase font-medium block ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>Est. Cost</span>
                         <span className={`text-xs font-bold font-mono ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#A3BE8C]'}`}>
-                          {item.cost === 0 ? 'Free' : `${activeTrip.currency} ${item.cost}`}
+                          {item.cost === 0 ? 'Free' : formatCurrency(item.cost, activeTrip.currency)}
                         </span>
                       </div>
 
@@ -1170,7 +910,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder={destinationSuggestions.replace('✍️ ', '')}
+                  placeholder={`e.g. Visit landmark, explore downtown, or dinner in ${activeTrip.cityName}`}
                   className="w-full px-3 py-2 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-sm focus:ring-2 focus:ring-[#88C0D0]"
                 />
               </div>
@@ -1194,7 +934,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                 </div>
 
                 <div>
-                  <label className="block text-[#D8DEE9] font-bold mb-1">Estimated Cost ({activeTrip.currency})</label>
+                  <label className="block text-[#D8DEE9] font-bold mb-1">Estimated Cost ({getCurrencySymbol(activeTrip.currency)})</label>
                   <input
                     type="number"
                     min="0"

@@ -3,11 +3,13 @@ import type { City, ItineraryItem, PackingItem, PlanningMode, ReadyMadeTourPlan,
 import { POPULAR_DESTINATIONS } from '../services/mockDestinations';
 import { fetchWeatherData } from '../services/weatherApi';
 import { evaluateSpotAccessibility } from '../services/geminiService';
+import { getDefaultCurrencyRates } from '../utils/currency';
 import confetti from 'canvas-confetti';
 
 interface TripContextType {
   activeTrip: TripPlan;
   savedTrips: TripPlan[];
+  hasUserTrip: boolean;
   selectedDay: number;
   setSelectedDay: (day: number) => void;
   weather: WeatherData | null;
@@ -85,15 +87,14 @@ function createDefaultTripForCity(
     ],
   };
 
-  const curr = city.currency?.split(' ')[0] || 'INR (₹)';
-  const isINR = curr.includes('INR');
-  const defaultBudget = customBudget || (isINR ? 25000 : 1500);
+  const curr = city.currency || 'INR (₹)';
+  const defaultBudget = customBudget || getDefaultCurrencyRates(curr).defaultBudget;
 
   // If custom items are passed (from AI generator), use them
   if (customItems && customItems.length > 0) {
     return {
       id: `trip-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-      title: `${origin} ➔ ${city.name} (${days} Days)`,
+      title: `${origin ? `${origin} ➔ ` : ''}${city.name} (${days} Days)`,
       cityName: city.name,
       country: city.country,
       city,
@@ -114,6 +115,7 @@ function createDefaultTripForCity(
 
   // Manual personal starter items (Arrival, check-in, orientation)
   const isDarjeeling = city.name.toLowerCase().includes('darjeeling');
+  const isINR = curr.includes('INR') || curr.includes('₹');
   const starterItems: ItineraryItem[] = [
     {
       id: `init-1-${Date.now()}`,
@@ -220,8 +222,12 @@ export const TripProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Error reading localStorage trips:', e);
     }
     const defaultCity = POPULAR_DESTINATIONS[0]; // Tokyo
-    return [createDefaultTripForCity(defaultCity, 3)];
+    const initTrip = createDefaultTripForCity(defaultCity, 3);
+    initTrip.id = 'trip-default-init';
+    return [initTrip];
   });
+
+  const hasUserTrip = savedTrips.some(t => t.id !== 'trip-default-init');
 
   const [activeTripId, setActiveTripId] = useState<string>(() => {
     try {
@@ -588,6 +594,7 @@ export const TripProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         activeTrip: activeTrip || createDefaultTripForCity(POPULAR_DESTINATIONS[0]),
         savedTrips,
+        hasUserTrip,
         selectedDay,
         setSelectedDay,
         weather,

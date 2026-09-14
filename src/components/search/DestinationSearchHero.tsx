@@ -12,53 +12,17 @@ import {
   DollarSign,
   Compass,
   Edit3,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { useTrip } from '../../context/TripContext';
 import { useViewMode } from '../../context/ViewModeContext';
 import { searchCities, detectCurrency } from '../../services/weatherApi';
-import { POPULAR_DESTINATIONS } from '../../services/mockDestinations';
 import { NordicDatePicker } from '../common/NordicDatePicker';
 import { FamilyMembersSelector, DEFAULT_FAMILY_MEMBERS, getDerivedAgeGroup } from '../common/FamilyMembersSelector';
 import { AITourPlanNotesModal } from '../itinerary/AITourPlanNotesModal';
+import { getDefaultCurrencyRates, getCurrencyCode } from '../../utils/currency';
 import type { City, TravelerGroupProfile, FamilyMember } from '../../types/travel';
-
-const TRENDING_DESTINATIONS = [
-  {
-    id: 'darjeeling-quick',
-    name: 'Darjeeling',
-    country: 'India',
-    countryCode: 'IN',
-    latitude: 27.0410,
-    longitude: 88.2663,
-    currency: 'INR (₹)',
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
-    description: 'Queen of the Hills: Tiger Hill sunrise, Mall Road, toy train, and lush Himalayan tea gardens.',
-  },
-  {
-    id: 'sikkim-quick',
-    name: 'Sikkim',
-    country: 'India',
-    countryCode: 'IN',
-    latitude: 27.5330,
-    longitude: 88.5122,
-    currency: 'INR (₹)',
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
-    description: 'Alpine lakes, sacred monasteries, and snow-capped Himalayan peaks in Northeast India.',
-  },
-  {
-    id: 'arunachal-quick',
-    name: 'Arunachal Pradesh',
-    country: 'India',
-    countryCode: 'IN',
-    latitude: 28.2180,
-    longitude: 94.7278,
-    currency: 'INR (₹)',
-    image: 'https://images.unsplash.com/photo-1626014303757-6466336e8494?auto=format&fit=crop&w=800&q=80',
-    description: 'The Land of Dawn-Lit Mountains with historic Tawang Monastery and pristine river valleys.',
-  },
-  ...POPULAR_DESTINATIONS.slice(0, 3),
-];
 
 
 const TRAVEL_STYLES = [
@@ -69,17 +33,16 @@ const TRAVEL_STYLES = [
 ];
 
 export const DestinationSearchHero: React.FC = () => {
-  const { startPlanningForCity, activeTrip, weather, setIsSearchMode } = useTrip();
+  const { startPlanningForCity, activeTrip, weather, setIsSearchMode, hasUserTrip } = useTrip();
   const { isMobileView } = useViewMode();
 
-  // Search state
-  const [query, setQuery] = useState<string>(activeTrip?.city?.name || 'Darjeeling');
+  // Search state - EMPTY by default until user enters or selects
+  const [query, setQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<City[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [selectedCity, setSelectedCity] = useState<City>(
-    activeTrip?.city || TRENDING_DESTINATIONS[0] as City
-  );
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Planning mode modal state
@@ -87,21 +50,17 @@ export const DestinationSearchHero: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<'manual' | 'ai'>('manual');
   const [isNotesModalOpen, setIsNotesModalOpen] = useState<boolean>(false);
 
-  // Common planning parameters
-  const [origin, setOrigin] = useState<string>(activeTrip?.origin || 'Kolkata');
-  const [startDate, setStartDate] = useState<string>(
-    activeTrip?.startDate || new Date().toISOString().split('T')[0]
-  );
-  const [durationDays, setDurationDays] = useState<number>(activeTrip?.daysCount || 3);
+  // Common planning parameters - EMPTY by default until user input
+  const [origin, setOrigin] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [durationDays, setDurationDays] = useState<number>(3);
 
   // Family members & exact ages
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(
-    activeTrip?.groupProfile?.members || DEFAULT_FAMILY_MEMBERS
-  );
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(DEFAULT_FAMILY_MEMBERS);
 
   // AI-specific parameters
-  const isINR = (selectedCity.currency || 'INR').includes('INR');
-  const [budget, setBudget] = useState<number>(isINR ? 25000 : 1500);
+  const detectedCurr = selectedCity?.currency || 'USD ($)';
+  const [budget, setBudget] = useState<number>(getDefaultCurrencyRates(detectedCurr).defaultBudget);
   const [travelStyle, setTravelStyle] = useState<string>('Sightseeing & Culture');
 
   // Debounced search for worldwide cities & regions
@@ -144,13 +103,14 @@ export const DestinationSearchHero: React.FC = () => {
     setSelectedCity(city);
     setQuery(city.name);
     setShowDropdown(false);
-    // Update budget default based on currency
-    const currIsINR = (city.currency || '').includes('INR');
-    setBudget(currIsINR ? 25000 : 1500);
+    setValidationError(null);
+    const rates = getDefaultCurrencyRates(city.currency);
+    setBudget(rates.defaultBudget);
   };
 
   const handleClearQuery = () => {
     setQuery('');
+    setSelectedCity(null);
     setSearchResults([]);
     setShowDropdown(false);
   };
@@ -159,15 +119,18 @@ export const DestinationSearchHero: React.FC = () => {
   const handleOpenModeSelection = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = query.trim();
-    if (!trimmed) {
-      setIsModeModalOpen(true);
+    if (!trimmed && !selectedCity) {
+      setValidationError('Please enter or select a destination first.');
       return;
     }
+    setValidationError(null);
 
     // Check if match in search results
     if (searchResults.length > 0) {
       const topMatch = searchResults.find(r => r.name.toLowerCase() === trimmed.toLowerCase()) || searchResults[0];
       setSelectedCity(topMatch);
+      const rates = getDefaultCurrencyRates(topMatch.currency);
+      setBudget(rates.defaultBudget);
       setIsModeModalOpen(true);
       return;
     }
@@ -185,6 +148,8 @@ export const DestinationSearchHero: React.FC = () => {
       if (liveResults && liveResults.length > 0) {
         const best = liveResults.find(r => r.name.toLowerCase() === trimmed.toLowerCase()) || liveResults[0];
         setSelectedCity(best);
+        const rates = getDefaultCurrencyRates(best.currency);
+        setBudget(rates.defaultBudget);
         setIsModeModalOpen(true);
         return;
       }
@@ -195,23 +160,27 @@ export const DestinationSearchHero: React.FC = () => {
     }
 
     // Fallback custom city
+    const detected = detectCurrency(undefined, trimmed);
     const customCity: City = {
       id: `place-${trimmed.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
       name: trimmed,
-      country: selectedCity?.country || 'Global Destination',
-      countryCode: selectedCity?.countryCode || '',
-      latitude: selectedCity?.latitude || 27.0410,
-      longitude: selectedCity?.longitude || 88.2663,
-      currency: detectCurrency(selectedCity?.countryCode, trimmed),
+      country: 'Destination',
+      countryCode: '',
+      latitude: 27.0410,
+      longitude: 88.2663,
+      currency: detected,
       image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80',
       description: `Explore the attractions, culture, and sights of ${trimmed}.`,
     };
     setSelectedCity(customCity);
+    const rates = getDefaultCurrencyRates(detected);
+    setBudget(rates.defaultBudget);
     setIsModeModalOpen(true);
   };
 
   // Step 2A: Start Manual Planning
   const handleStartManualPlan = () => {
+    if (!selectedCity) return;
     const derivedAgeGroup = getDerivedAgeGroup(familyMembers);
     const profile: TravelerGroupProfile = {
       numberOfHeads: familyMembers.length,
@@ -219,9 +188,10 @@ export const DestinationSearchHero: React.FC = () => {
       travelStyle,
       members: familyMembers,
     };
+    const effectiveStartDate = startDate || new Date().toISOString().split('T')[0];
     startPlanningForCity(
       selectedCity,
-      startDate,
+      effectiveStartDate,
       durationDays,
       origin,
       'manual',
@@ -234,6 +204,7 @@ export const DestinationSearchHero: React.FC = () => {
 
   // Step 2B: Open AI Tour Plan Notes Modal
   const handleGenerateAIPlan = () => {
+    if (!selectedCity) return;
     setIsModeModalOpen(false);
     setIsNotesModalOpen(true);
   };
@@ -274,8 +245,8 @@ export const DestinationSearchHero: React.FC = () => {
           </p>
         </div>
 
-        {/* Quick Resume In-Progress Trip Banner (if an active trip exists) */}
-        {activeTrip && (
+        {/* Quick Resume In-Progress Trip Banner (only if user has an active trip planned) */}
+        {hasUserTrip && activeTrip && (
           <div className={`w-full max-w-xl mx-auto p-3.5 rounded-2xl flex items-center justify-between gap-3 shadow-sm border transition-all ${
             isMobileView
               ? 'bg-white border-[#E2E6F0] text-[#1A1D2E]'
@@ -320,6 +291,14 @@ export const DestinationSearchHero: React.FC = () => {
               : 'glass-card border-[#3B4252] shadow-2xl'
           }`}
         >
+          {/* Validation Alert */}
+          {validationError && (
+            <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+              <span>{validationError}</span>
+            </div>
+          )}
+
           {/* Destination Search Bar */}
           <div className="space-y-2 relative" ref={searchRef}>
             <label className={`block text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
@@ -339,12 +318,13 @@ export const DestinationSearchHero: React.FC = () => {
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
+                  setValidationError(null);
                   setShowDropdown(true);
                 }}
                 onFocus={() => {
                   if (query.trim().length >= 2) setShowDropdown(true);
                 }}
-                placeholder="Search places like Darjeeling, Sikkim, Paris, Tokyo..."
+                placeholder="Search destination city or region (e.g. Paris, Tokyo, Darjeeling)..."
                 className={`w-full pl-12 pr-24 py-3.5 rounded-2xl border text-sm sm:text-base font-medium shadow-inner focus:outline-none transition-all ${
                   isMobileView
                     ? 'bg-[#F8FAFC] border-[#E2E6F0] text-[#1A1D2E] placeholder-[#94A3B8] focus:ring-2 focus:ring-[#5D5FEF] focus:border-transparent'
@@ -462,7 +442,7 @@ export const DestinationSearchHero: React.FC = () => {
                 type="text"
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
-                placeholder="e.g. Kolkata, Delhi"
+                placeholder="e.g. Kolkata, London, New York..."
                 className={`w-full px-3 py-2 rounded-xl text-xs focus:ring-2 border transition-all ${
                   isMobileView
                     ? 'bg-[#F8FAFC] border-[#E2E6F0] text-[#1A1D2E] placeholder-[#94A3B8] focus:ring-[#5D5FEF] shadow-sm'
@@ -482,6 +462,7 @@ export const DestinationSearchHero: React.FC = () => {
               <NordicDatePicker
                 value={startDate}
                 onChange={setStartDate}
+                placeholder="Select start date"
               />
             </div>
 
@@ -509,7 +490,9 @@ export const DestinationSearchHero: React.FC = () => {
                 : 'gradient-accent hover:opacity-95 text-[#1A1E24] shadow-glow'
             }`}
           >
-            <span>Proceed to Plan ({selectedCity.name})</span>
+            <span>
+              {selectedCity ? `Proceed to Plan (${selectedCity.name})` : query.trim() ? `Proceed to Plan (${query.trim()})` : 'Proceed to Plan'}
+            </span>
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
@@ -538,7 +521,7 @@ export const DestinationSearchHero: React.FC = () => {
                   isMobileView ? 'text-[#5D5FEF]' : 'text-[#88C0D0]'
                 }`}>
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>Destination: {selectedCity.name}, {selectedCity.country}</span>
+                  <span>Destination: {selectedCity?.name || query.trim() || 'Your Destination'}, {selectedCity?.country || 'Destination'}</span>
                 </div>
                 <h3 className={`text-xl sm:text-2xl font-black ${
                   isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'
@@ -741,7 +724,7 @@ export const DestinationSearchHero: React.FC = () => {
                       isMobileView ? 'text-[#4F566B]' : 'text-[#D8DEE9]'
                     }`}>
                       <DollarSign className={`w-3.5 h-3.5 ${isMobileView ? 'text-[#16A34A]' : 'text-[#A3BE8C]'}`} />
-                      <span>Total Group Budget ({selectedCity.currency?.split(' ')[0] || 'INR'})</span>
+                      <span>Total Group Budget ({getCurrencyCode(selectedCity?.currency)})</span>
                     </label>
                     <input
                       type="number"
