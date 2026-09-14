@@ -8,7 +8,7 @@ import { AttractionRecommendations } from './components/recommendations/Attracti
 import { ItineraryTimeline } from './components/itinerary/ItineraryTimeline';
 import { TravelExpenseCalculator } from './components/expense/TravelExpenseCalculator';
 import { FloatingAITourConcierge } from './components/assistant/FloatingAITourConcierge';
-import { Calendar, Compass, ArrowLeft } from 'lucide-react';
+import { Calendar, Compass, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const { isSearchMode, setIsSearchMode, activeTrip } = useTrip();
@@ -33,26 +33,41 @@ const MainContent: React.FC = () => {
         <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-xl border-b border-[#E8ECF5] px-4 py-3 shadow-sm">
           <div className="flex items-center justify-between">
             {/* Left: Avatar & Greeting */}
-            <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsSearchMode(true)}
+              className="flex items-center gap-2.5 text-left cursor-pointer"
+              title="Go to RouteWise Home"
+            >
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#5D5FEF] to-[#88C0D0] flex items-center justify-center text-white font-black text-sm shadow-sm">
                 RW
               </div>
               <div>
                 <span className="block text-[11px] font-medium text-[#7E859B]">Welcome to</span>
                 <h2 className="text-sm font-black text-[#1A1D2E] leading-tight">
-                  {activeTrip.cityName || 'RouteWise'} Trip
+                  {isSearchMode ? 'RouteWise Planner' : `${activeTrip.cityName || 'RouteWise'} Trip`}
                 </h2>
               </div>
-            </div>
+            </button>
 
             {/* Right: Search / Switch Destination Pill */}
             <button
               type="button"
               onClick={() => setIsSearchMode(!isSearchMode)}
-              className="w-9 h-9 rounded-full bg-[#F4F6FB] border border-[#E2E6F0] flex items-center justify-center text-[#5D5FEF] hover:bg-[#EEF0FF] transition-colors"
+              className="px-3 py-1.5 rounded-full bg-[#F4F6FB] border border-[#E2E6F0] flex items-center gap-1.5 text-xs font-bold text-[#5D5FEF] hover:bg-[#EEF0FF] transition-colors shadow-sm"
               title={isSearchMode ? "Return to itinerary" : "Search other destinations"}
             >
-              <Compass className="w-4 h-4" />
+              {isSearchMode ? (
+                <>
+                  <span className="text-[11px]">Itinerary</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              ) : (
+                <>
+                  <Compass className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">Search</span>
+                </>
+              )}
             </button>
           </div>
         </header>

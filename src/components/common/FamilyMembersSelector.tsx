@@ -12,6 +12,7 @@ import {
   HeartHandshake,
   Check
 } from 'lucide-react';
+import { useViewMode } from '../../context/ViewModeContext';
 import type { FamilyMember } from '../../types/travel';
 
 interface FamilyMembersSelectorProps {
@@ -101,6 +102,7 @@ export const FamilyMembersSelector: React.FC<FamilyMembersSelectorProps> = ({
   className = '',
   compact = false,
 }) => {
+  const { isMobileView } = useViewMode();
   const [isOpen, setIsOpen] = useState(false);
 
   // Close modal on Escape
@@ -278,12 +280,22 @@ export const FamilyMembersSelector: React.FC<FamilyMembersSelectorProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#1A1E24] border ${
-          isOpen ? 'border-[#88C0D0] ring-2 ring-[#88C0D0]/30' : 'border-[#3B4252] hover:border-[#81A1C1]'
-        } text-[#ECEFF4] text-xs transition-all flex items-center justify-between text-left group select-none shadow-sm`}
+        className={`w-full px-3.5 py-2.5 rounded-xl border ${
+          isMobileView
+            ? isOpen
+              ? 'border-[#5D5FEF] ring-2 ring-[#5D5FEF]/20 bg-white text-[#1A1D2E]'
+              : 'border-[#E2E6F0] hover:border-[#5D5FEF] bg-white text-[#1A1D2E] shadow-sm'
+            : isOpen
+              ? 'border-[#88C0D0] ring-2 ring-[#88C0D0]/30 bg-[#1A1E24] text-[#ECEFF4]'
+              : 'border-[#3B4252] hover:border-[#81A1C1] bg-[#1A1E24] text-[#ECEFF4]'
+        } text-xs transition-all flex items-center justify-between text-left group select-none shadow-sm`}
       >
         <div className="flex items-center gap-2 overflow-hidden mr-2">
-          <div className="p-1.5 rounded-lg bg-[#88C0D0]/15 text-[#88C0D0] group-hover:bg-[#88C0D0] group-hover:text-[#1A1E24] transition-colors shrink-0">
+          <div className={`p-1.5 rounded-lg transition-colors shrink-0 ${
+            isMobileView
+              ? 'bg-[#EEF0FF] text-[#5D5FEF] group-hover:bg-[#5D5FEF] group-hover:text-white'
+              : 'bg-[#88C0D0]/15 text-[#88C0D0] group-hover:bg-[#88C0D0] group-hover:text-[#1A1E24]'
+          }`}>
             {children.length > 0 ? (
               <Baby className="w-3.5 h-3.5" />
             ) : seniors.length > 0 ? (
@@ -293,11 +305,11 @@ export const FamilyMembersSelector: React.FC<FamilyMembersSelectorProps> = ({
             )}
           </div>
           <div className="truncate">
-            <div className="text-[#ECEFF4] font-bold text-xs truncate">
+            <div className={`font-bold text-xs truncate ${isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'}`}>
               {summary}
             </div>
             {!compact && (
-              <div className="text-[10px] text-[#81A1C1] truncate">
+              <div className={`text-[10px] truncate ${isMobileView ? 'text-[#7E859B]' : 'text-[#81A1C1]'}`}>
                 {totalCount} {totalCount === 1 ? 'Traveler' : 'Total Heads'} • Tap to customize ages
               </div>
             )}
@@ -305,8 +317,10 @@ export const FamilyMembersSelector: React.FC<FamilyMembersSelectorProps> = ({
         </div>
 
         <ChevronDown
-          className={`w-4 h-4 text-[#81A1C1] shrink-0 transition-transform ${
-            isOpen ? 'rotate-180 text-[#88C0D0]' : 'group-hover:text-[#ECEFF4]'
+          className={`w-4 h-4 shrink-0 transition-transform ${
+            isOpen
+              ? isMobileView ? 'rotate-180 text-[#5D5FEF]' : 'rotate-180 text-[#88C0D0]'
+              : isMobileView ? 'text-[#94A3B8] group-hover:text-[#1A1D2E]' : 'text-[#81A1C1] group-hover:text-[#ECEFF4]'
           }`}
         />
       </button>
@@ -320,25 +334,39 @@ export const FamilyMembersSelector: React.FC<FamilyMembersSelectorProps> = ({
           }}
         >
           <div 
-            className="relative w-full max-w-lg bg-[#242933] border border-[#3B4252] rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-left"
+            className={`relative w-full max-w-lg rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-left border ${
+              isMobileView
+                ? 'bg-white border-[#E2E6F0] text-[#1A1D2E]'
+                : 'bg-[#242933] border-[#3B4252] text-[#ECEFF4]'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-[#2E3440] flex items-start justify-between bg-[#1A1E24]/60 shrink-0">
+            <div className={`p-4 sm:p-5 border-b flex items-start justify-between shrink-0 ${
+              isMobileView
+                ? 'bg-[#F8FAFC] border-[#E8ECF5]'
+                : 'bg-[#1A1E24]/60 border-[#2E3440]'
+            }`}>
               <div>
-                <h3 className="text-base sm:text-lg font-black text-[#ECEFF4] flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#88C0D0]" />
+                <h3 className={`text-base sm:text-lg font-black flex items-center gap-2 ${
+                  isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'
+                }`}>
+                  <Users className={`w-5 h-5 ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#88C0D0]'}`} />
                   <span>Family Members & Ages</span>
                 </h3>
-                <p className="text-xs text-[#D8DEE9]/80 mt-1">
+                <p className={`text-xs mt-1 ${isMobileView ? 'text-[#67708A]' : 'text-[#D8DEE9]/80'}`}>
                   Adjust traveler counts and specify exact ages so activities, pacing, and vehicle transit fit everyone.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-xl text-[#D8DEE9]/70 hover:text-white hover:bg-[#3B4252] transition-colors ml-2"
+                className={`p-1.5 rounded-xl transition-colors ml-2 ${
+                  isMobileView
+                    ? 'text-[#7E859B] hover:text-[#1A1D2E] hover:bg-[#EEF0FF]'
+                    : 'text-[#D8DEE9]/70 hover:text-white hover:bg-[#3B4252]'
+                }`}
                 title="Close"
               >
                 <X className="w-5 h-5" />

@@ -196,10 +196,16 @@ const TripContext = createContext<TripContextType | undefined>(undefined);
 export const TripProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isSearchMode, setIsSearchMode] = useState<boolean>(() => {
     try {
+      // In a new session or initial visit, always open to the Home Screen to select trip info
+      const sessionActive = sessionStorage.getItem('routewise_session_active');
+      if (!sessionActive) {
+        sessionStorage.setItem('routewise_session_active', 'true');
+        return true;
+      }
       const stored = localStorage.getItem(STORAGE_KEY_SEARCH_MODE);
-      return stored ? JSON.parse(stored) : false;
+      return stored !== null ? JSON.parse(stored) : true;
     } catch {
-      return false;
+      return true;
     }
   });
 

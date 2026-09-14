@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useViewMode } from '../../context/ViewModeContext';
 
 interface NordicDatePickerProps {
   value: string; // Format: YYYY-MM-DD
@@ -25,6 +26,7 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
   placeholder = 'Select date',
   className = '',
 }) => {
+  const { isMobileView } = useViewMode();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -206,13 +208,13 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
   // Display text formatted cleanly
   const formattedDisplay = selectedDate ? (
     <span className="flex items-center gap-1.5">
-      <span className="text-[#ECEFF4] font-medium font-mono">{value}</span>
-      <span className="text-[11px] text-[#81A1C1] font-sans">
+      <span className={`font-medium font-mono ${isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'}`}>{value}</span>
+      <span className={`text-[11px] font-sans ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#81A1C1]'}`}>
         ({selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })})
       </span>
     </span>
   ) : (
-    <span className="text-[#D8DEE9]/50">{placeholder}</span>
+    <span className={isMobileView ? 'text-[#94A3B8]' : 'text-[#D8DEE9]/50'}>{placeholder}</span>
   );
 
   // Year options for quick select (current year - 2 to +8)
@@ -232,27 +234,47 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
             setIsOpen(!isOpen);
           }
         }}
-        className={`w-full px-3 py-2 rounded-xl bg-[#1A1E24] border ${
-          isOpen ? 'border-[#88C0D0] ring-2 ring-[#88C0D0]/30' : 'border-[#3B4252] hover:border-[#81A1C1]'
-        } text-[#ECEFF4] text-xs font-mono flex items-center justify-between cursor-pointer transition-all select-none group`}
+        className={`w-full px-3 py-2 rounded-xl border ${
+          isMobileView
+            ? isOpen
+              ? 'bg-white border-[#5D5FEF] ring-2 ring-[#5D5FEF]/20 text-[#1A1D2E]'
+              : 'bg-white border-[#E2E6F0] hover:border-[#5D5FEF] text-[#1A1D2E] shadow-sm'
+            : isOpen
+              ? 'bg-[#1A1E24] border-[#88C0D0] ring-2 ring-[#88C0D0]/30 text-[#ECEFF4]'
+              : 'bg-[#1A1E24] border-[#3B4252] hover:border-[#81A1C1] text-[#ECEFF4]'
+        } text-xs font-mono flex items-center justify-between cursor-pointer transition-all select-none group`}
       >
         <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
           {formattedDisplay}
         </div>
-        <div className="p-1 rounded-md text-[#88C0D0] group-hover:text-[#ECEFF4] group-hover:bg-[#2E3440] transition-colors">
+        <div className={`p-1 rounded-md transition-colors ${
+          isMobileView
+            ? 'text-[#5D5FEF] group-hover:bg-[#EEF0FF]'
+            : 'text-[#88C0D0] group-hover:text-[#ECEFF4] group-hover:bg-[#2E3440]'
+        }`}>
           <CalendarIcon className="w-3.5 h-3.5" />
         </div>
       </div>
 
       {/* Calendar Popover */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 z-50 w-72 p-3.5 rounded-2xl bg-[#242933] border border-[#3B4252] shadow-2xl shadow-black/80 backdrop-blur-xl animate-fade-in">
+        <div className={`absolute left-0 top-full mt-2 z-50 w-72 p-3.5 rounded-2xl shadow-2xl backdrop-blur-xl animate-fade-in border ${
+          isMobileView
+            ? 'bg-white border-[#E2E6F0] text-[#1A1D2E] shadow-[0_10px_35px_rgba(20,30,50,0.12)]'
+            : 'bg-[#242933] border-[#3B4252] text-[#ECEFF4] shadow-black/80'
+        }`}>
           {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#2E3440]">
+          <div className={`flex items-center justify-between mb-3 pb-2 border-b ${
+            isMobileView ? 'border-[#F1F3F9]' : 'border-[#2E3440]'
+          }`}>
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-lg hover:bg-[#3B4252] text-[#D8DEE9] hover:text-[#ECEFF4] transition-colors"
+              className={`p-1.5 rounded-lg transition-colors ${
+                isMobileView
+                  ? 'hover:bg-[#F4F6FB] text-[#67708A] hover:text-[#1A1D2E]'
+                  : 'hover:bg-[#3B4252] text-[#D8DEE9] hover:text-[#ECEFF4]'
+              }`}
               title="Previous Month"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -263,7 +285,11 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
               <select
                 value={viewMonth}
                 onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
-                className="bg-[#1A1E24] text-[#ECEFF4] text-xs font-semibold px-2 py-1 rounded-lg border border-[#3B4252] focus:border-[#88C0D0] outline-none cursor-pointer"
+                className={`text-xs font-semibold px-2 py-1 rounded-lg border outline-none cursor-pointer ${
+                  isMobileView
+                    ? 'bg-[#F8FAFC] text-[#1A1D2E] border-[#E2E6F0] focus:border-[#5D5FEF]'
+                    : 'bg-[#1A1E24] text-[#ECEFF4] border-[#3B4252] focus:border-[#88C0D0]'
+                }`}
               >
                 {MONTH_NAMES.map((name, idx) => (
                   <option key={name} value={idx}>
@@ -276,7 +302,11 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
               <select
                 value={viewYear}
                 onChange={(e) => setViewYear(parseInt(e.target.value, 10))}
-                className="bg-[#1A1E24] text-[#ECEFF4] text-xs font-semibold px-2 py-1 rounded-lg border border-[#3B4252] focus:border-[#88C0D0] outline-none cursor-pointer"
+                className={`text-xs font-semibold px-2 py-1 rounded-lg border outline-none cursor-pointer ${
+                  isMobileView
+                    ? 'bg-[#F8FAFC] text-[#1A1D2E] border-[#E2E6F0] focus:border-[#5D5FEF]'
+                    : 'bg-[#1A1E24] text-[#ECEFF4] border-[#3B4252] focus:border-[#88C0D0]'
+                }`}
               >
                 {yearOptions.map((yr) => (
                   <option key={yr} value={yr}>
@@ -289,7 +319,11 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1.5 rounded-lg hover:bg-[#3B4252] text-[#D8DEE9] hover:text-[#ECEFF4] transition-colors"
+              className={`p-1.5 rounded-lg transition-colors ${
+                isMobileView
+                  ? 'hover:bg-[#F4F6FB] text-[#67708A] hover:text-[#1A1D2E]'
+                  : 'hover:bg-[#3B4252] text-[#D8DEE9] hover:text-[#ECEFF4]'
+              }`}
               title="Next Month"
             >
               <ChevronRight className="w-4 h-4" />
@@ -301,7 +335,9 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
             {DAYS_OF_WEEK.map((d) => (
               <div
                 key={d}
-                className="text-[10px] font-bold text-[#81A1C1] text-center uppercase tracking-wider py-0.5"
+                className={`text-[10px] font-bold text-center uppercase tracking-wider py-0.5 ${
+                  isMobileView ? 'text-[#7E859B]' : 'text-[#81A1C1]'
+                }`}
               >
                 {d}
               </div>
@@ -320,15 +356,25 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
                 'h-8 w-full rounded-lg text-xs flex items-center justify-center transition-all font-mono ';
 
               if (isDisabled) {
-                btnClasses += 'opacity-30 cursor-not-allowed text-[#4C566A]';
+                btnClasses += isMobileView
+                  ? 'opacity-30 cursor-not-allowed text-[#CBD5E1]'
+                  : 'opacity-30 cursor-not-allowed text-[#4C566A]';
               } else if (isSelected) {
-                btnClasses += 'bg-[#88C0D0] text-[#1A1E24] font-bold shadow-md shadow-[#88C0D0]/30 scale-105';
+                btnClasses += isMobileView
+                  ? 'bg-[#5D5FEF] text-white font-bold shadow-md shadow-[#5D5FEF]/30 scale-105'
+                  : 'bg-[#88C0D0] text-[#1A1E24] font-bold shadow-md shadow-[#88C0D0]/30 scale-105';
               } else if (isToday) {
-                btnClasses += 'border border-[#88C0D0] text-[#88C0D0] font-semibold hover:bg-[#3B4252]';
+                btnClasses += isMobileView
+                  ? 'border border-[#5D5FEF] text-[#5D5FEF] font-semibold hover:bg-[#EEF0FF]'
+                  : 'border border-[#88C0D0] text-[#88C0D0] font-semibold hover:bg-[#3B4252]';
               } else if (isCurrent) {
-                btnClasses += 'text-[#ECEFF4] hover:bg-[#3B4252] hover:text-[#88C0D0]';
+                btnClasses += isMobileView
+                  ? 'text-[#1A1D2E] hover:bg-[#F4F6FB] hover:text-[#5D5FEF]'
+                  : 'text-[#ECEFF4] hover:bg-[#3B4252] hover:text-[#88C0D0]';
               } else {
-                btnClasses += 'text-[#4C566A] hover:bg-[#2E3440] hover:text-[#D8DEE9]';
+                btnClasses += isMobileView
+                  ? 'text-[#94A3B8] hover:bg-[#F8FAFC]'
+                  : 'text-[#4C566A] hover:bg-[#2E3440] hover:text-[#D8DEE9]';
               }
 
               return (
@@ -349,26 +395,40 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
           </div>
 
           {/* Quick Jump Shortcuts */}
-          <div className="pt-2 border-t border-[#2E3440] flex items-center justify-between text-[11px]">
+          <div className={`pt-2 border-t flex items-center justify-between text-[11px] ${
+            isMobileView ? 'border-[#F1F3F9]' : 'border-[#2E3440]'
+          }`}>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => handleQuickSelect(0)}
-                className="px-2 py-1 rounded-md bg-[#2E3440] text-[#88C0D0] hover:bg-[#3B4252] transition-colors font-medium"
+                className={`px-2 py-1 rounded-md transition-colors font-medium ${
+                  isMobileView
+                    ? 'bg-[#EEF0FF] text-[#5D5FEF] hover:bg-[#E0E2FD]'
+                    : 'bg-[#2E3440] text-[#88C0D0] hover:bg-[#3B4252]'
+                }`}
               >
                 Today
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickSelect(1)}
-                className="px-2 py-1 rounded-md bg-[#2E3440] text-[#D8DEE9] hover:bg-[#3B4252] transition-colors font-medium"
+                className={`px-2 py-1 rounded-md transition-colors font-medium ${
+                  isMobileView
+                    ? 'bg-[#F4F6FB] text-[#4F566B] hover:bg-[#EEF0FF] hover:text-[#5D5FEF]'
+                    : 'bg-[#2E3440] text-[#D8DEE9] hover:bg-[#3B4252]'
+                }`}
               >
                 Tomorrow
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickSelect(7)}
-                className="px-2 py-1 rounded-md bg-[#2E3440] text-[#D8DEE9] hover:bg-[#3B4252] transition-colors font-medium"
+                className={`px-2 py-1 rounded-md transition-colors font-medium ${
+                  isMobileView
+                    ? 'bg-[#F4F6FB] text-[#4F566B] hover:bg-[#EEF0FF] hover:text-[#5D5FEF]'
+                    : 'bg-[#2E3440] text-[#D8DEE9] hover:bg-[#3B4252]'
+                }`}
               >
                 +1 Wk
               </button>
@@ -377,7 +437,11 @@ export const NordicDatePicker: React.FC<NordicDatePickerProps> = ({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1 rounded-md text-[#D8DEE9]/70 hover:text-white hover:bg-[#2E3440] transition-colors"
+              className={`p-1 rounded-md transition-colors ${
+                isMobileView
+                  ? 'text-[#67708A] hover:text-[#1A1D2E] hover:bg-[#F4F6FB]'
+                  : 'text-[#D8DEE9]/70 hover:text-white hover:bg-[#2E3440]'
+              }`}
               title="Close calendar"
             >
               <X className="w-3.5 h-3.5" />

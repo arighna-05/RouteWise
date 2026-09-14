@@ -17,15 +17,9 @@ export const Navbar: React.FC = () => {
           {/* Brand Logo */}
           <button 
             type="button"
-            onClick={() => {
-              if (activeTrip) {
-                setIsSearchMode(!isSearchMode);
-              } else {
-                setIsSearchMode(true);
-              }
-            }}
-            className="flex items-center gap-2.5 text-left group"
-            title={isSearchMode && activeTrip ? "Return to active tour plan" : "Search destinations"}
+            onClick={() => setIsSearchMode(true)}
+            className="flex items-center gap-2.5 text-left group cursor-pointer"
+            title="Go to RouteWise Home (Search Destinations)"
           >
             <div className="w-10 h-10 rounded-xl gradient-accent flex items-center justify-center shadow-glow text-[#1A1E24] group-hover:scale-105 transition-transform font-bold">
               <Compass className="w-5 h-5" />
@@ -39,6 +33,27 @@ export const Navbar: React.FC = () => {
               </span>
             </div>
           </button>
+
+          {/* Right Action: Toggle between Active Itinerary and Destination Search */}
+          {activeTrip && (
+            <button
+              type="button"
+              onClick={() => setIsSearchMode(!isSearchMode)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 bg-[#242933] border-[#3B4252] text-[#88C0D0] hover:border-[#88C0D0] shadow-sm"
+            >
+              {isSearchMode ? (
+                <>
+                  <span>Resume {activeTrip.cityName} Itinerary</span>
+                  <span className="text-xs">➔</span>
+                </>
+              ) : (
+                <>
+                  <span>Plan Another Destination</span>
+                  <Compass className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
+          )}
 
         </div>
       </div>
