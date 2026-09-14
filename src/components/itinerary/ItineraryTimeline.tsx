@@ -15,7 +15,6 @@ import {
   ShieldCheck, 
   AlertTriangle, 
   AlertCircle,
-  Sparkles, 
   Sun, 
   CloudRain, 
   Ticket,
@@ -36,9 +35,9 @@ import {
   calculateNextScheduledTime, 
   getEstimatedVisitDuration 
 } from '../../services/trafficTransitService';
-import { ReadyMadeTourPlansModal } from './ReadyMadeTourPlansModal';
 import { TripConfirmedModal } from './TripConfirmedModal';
 import { HandwrittenPaperJournal } from './HandwrittenPaperJournal';
+import { useViewMode } from '../../context/ViewModeContext';
 
 interface ItineraryTimelineProps {
   onOpenAttractions?: () => void;
@@ -60,9 +59,9 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
     totalTripEstimatedCost,
     dayEstimatedCost
   } = useTrip();
+  const { isMobileView } = useViewMode();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isTourPlansModalOpen, setIsTourPlansModalOpen] = useState(false);
   const [isPaperJournalOpen, setIsPaperJournalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
 
@@ -400,11 +399,11 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
   return (
     <section className="space-y-6">
       
-      {/* Top Controls: Route Banner, Day Tabs, and Confirm Plan Button */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-[#2E3440]">
+      {/* Top Controls: Day Tabs and Paper Journal */}
+      <div className="space-y-2.5 pb-3 border-b border-[#2E3440]">
         
-        {/* Day-Wise Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+        {/* Day-Wise Tabs - Full Width Smooth Scroll */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
           {Array.from({ length: activeTrip.daysCount }, (_, i) => i + 1).map((dayNum) => {
             const isSelected = dayNum === selectedDay;
             const w = getWeatherForTripDay(weather, activeTrip.startDate, dayNum, activeTrip.city?.latitude);
@@ -414,7 +413,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                 key={dayNum}
                 type="button"
                 onClick={() => setSelectedDay(dayNum)}
-                className={`px-4 py-2.5 rounded-2xl text-left transition-all shrink-0 flex items-center gap-3 border ${
+                className={`px-3 py-2 rounded-xl text-left transition-all shrink-0 flex items-center gap-2 border ${
                   isSelected
                     ? 'bg-[#88C0D0] text-[#1A1E24] shadow-glow border-[#88C0D0] font-bold'
                     : 'bg-[#242933] text-[#D8DEE9] hover:bg-[#2E3440] border-[#3B4252]'
@@ -424,14 +423,14 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                   <div className="text-xs font-black tracking-wide uppercase">
                     Day {dayNum}
                   </div>
-                  <div className={`text-[11px] ${isSelected ? 'text-[#1A1E24]/80 font-semibold' : 'text-[#D8DEE9]/70'}`}>
+                  <div className={`text-[10px] sm:text-[11px] ${isSelected ? 'text-[#1A1E24]/80 font-semibold' : 'text-[#D8DEE9]/70'}`}>
                     {getDayDateString(dayNum)}
                   </div>
                 </div>
 
                 {/* Day Weather Pill */}
                 {w && (
-                  <div className={`px-2 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 ${
+                  <div className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 ${
                     isSelected ? 'bg-[#1A1E24]/20 text-[#1A1E24]' : 'bg-[#1A1E24] text-[#88C0D0]'
                   }`}>
                     <span>{w.maxTemp}°C</span>
@@ -445,145 +444,189 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
           <button
             type="button"
             onClick={addDayToTrip}
-            className="p-2.5 rounded-2xl bg-[#242933] border border-[#3B4252] text-[#D8DEE9] hover:text-white hover:bg-[#2E3440] transition-colors shrink-0"
+            className="p-2 rounded-xl bg-[#242933] border border-[#3B4252] text-[#D8DEE9] hover:text-white hover:bg-[#2E3440] transition-colors shrink-0"
             title="Add another day to tour"
           >
-            <CalendarPlus className="w-5 h-5" />
+            <CalendarPlus className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Action Buttons: Tour Plans, Paper Journal & Confirm Plan */}
-        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap justify-start">
-          {/* Handwritten Paper Journal Output & Export */}
+        {/* Action Row: Day Status & Paper Journal */}
+        <div className="flex items-center justify-between gap-2 pt-0.5">
+          <span className="text-[11px] font-semibold text-[#88C0D0]/85">
+            Day {selectedDay} of {activeTrip.daysCount} • {activeTrip.cityName}
+          </span>
           <button
             type="button"
             onClick={() => setIsPaperJournalOpen(true)}
-            className="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl bg-[#fdfaf2] hover:bg-[#f5ecd8] text-[#1e293b] text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-[#d6cfbe]"
+            className="px-3 py-1.5 rounded-xl bg-[#fdfaf2] hover:bg-[#f5ecd8] text-[#1e293b] text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-[#d6cfbe] whitespace-nowrap shrink-0 active:scale-95"
             title="View, export and print handwritten paper travel journal for this tour plan"
           >
-            <BookOpen className="w-3.5 h-3.5 text-[#1e3a8a]" />
-            <span className="font-handwritten text-sm font-bold text-[#1e3a8a] tracking-wide">
+            <BookOpen className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0" />
+            <span className="font-handwritten text-xs font-bold text-[#1e3a8a] tracking-wide">
               📖 Paper Journal
             </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsTourPlansModalOpen(true)}
-            className="px-3.5 py-2.5 rounded-2xl bg-[#242933] hover:bg-[#2E3440] border border-[#3B4252] text-[#D8DEE9] hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#EBCB8B]" />
-            <span>Pre-Made Plans</span>
-          </button>
-
-          {/* Prominent Confirm Plan Button */}
-          <button
-            type="button"
-            onClick={confirmTripPlan}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-glow ${
-              activeTrip.isConfirmed
-                ? 'bg-[#A3BE8C] hover:bg-[#8FBCBB] text-[#1A1E24]'
-                : 'gradient-aurora hover:opacity-95 text-[#1A1E24]'
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{activeTrip.isConfirmed ? '✓ Confirmed (View Summary)' : 'Confirm Tour Plan'}</span>
           </button>
         </div>
 
       </div>
 
       {/* Day Overview Header with Weather & Costs */}
-      <div className="glass-card rounded-2xl p-4 sm:p-5 border border-[#3B4252] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        
-        {/* Left: Weather condition for this day/time */}
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-2xl bg-[#88C0D0]/10 text-[#88C0D0]">
-            {dayWeather?.precipitationProb && dayWeather.precipitationProb > 40 ? (
-              <CloudRain className="w-6 h-6 text-[#88C0D0]" />
-            ) : (
-              <Sun className="w-6 h-6 text-[#EBCB8B]" />
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-[#ECEFF4]">
-                Day {selectedDay} • {getDayDateString(selectedDay)}
-              </h3>
-              {dayWeather && (
-                <span className="px-2 py-0.5 rounded-md bg-[#1A1E24] text-xs font-semibold text-[#88C0D0]">
-                  {dayWeather.maxTemp}° / {dayWeather.minTemp}°C • {dayWeather.weatherDescription}
-                </span>
+      {isMobileView ? (
+        <div className="glass-card rounded-2xl p-3.5 sm:p-5 border border-[#3B4252] space-y-3.5">
+          {/* Weather condition and Day Title */}
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-xl bg-[#88C0D0]/10 text-[#88C0D0] shrink-0 mt-0.5">
+              {dayWeather?.precipitationProb && dayWeather.precipitationProb > 40 ? (
+                <CloudRain className="w-5 h-5 text-[#88C0D0]" />
+              ) : (
+                <Sun className="w-5 h-5 text-[#EBCB8B]" />
               )}
             </div>
-            <p className="text-xs text-[#D8DEE9] mt-0.5">
-              {dayWeather && dayWeather.precipitationProb > 40
-                ? `⚠️ High chance of rain (${dayWeather.precipitationProb}%). Outdoor hill visits may be wet.`
-                : '☀️ Favorable travel weather. Good visibility for sightseeing and outdoor photography.'}
-            </p>
+
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm sm:text-base font-extrabold text-[#ECEFF4] whitespace-nowrap">
+                  Day {selectedDay} • {getDayDateString(selectedDay)}
+                </h3>
+                {dayWeather && (
+                  <span className="px-2 py-0.5 rounded-lg bg-[#1A1E24] text-[11px] font-semibold text-[#88C0D0] whitespace-nowrap border border-[#3B4252]/60">
+                    {dayWeather.maxTemp}° / {dayWeather.minTemp}°C • {dayWeather.weatherDescription}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#D8DEE9]/80 leading-relaxed">
+                {dayWeather && dayWeather.precipitationProb > 40
+                  ? `⚠️ High chance of rain (${dayWeather.precipitationProb}%). Outdoor hill visits may be wet.`
+                  : '☀️ Favorable travel weather. Good visibility for sightseeing and outdoor photography.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Dedicated Cost Summary & Full Form Action Row */}
+          <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#2E3440]">
+            <div className="flex items-center gap-3 sm:gap-5">
+              <div>
+                <span className="text-[9px] text-[#D8DEE9]/70 uppercase font-bold tracking-wider block">Day {selectedDay} Cost</span>
+                <span className="text-xs sm:text-sm font-black text-[#ECEFF4] font-mono">
+                  {activeTrip.currency} {dayEstimatedCost}
+                </span>
+              </div>
+
+              <div className="h-6 w-px bg-[#3B4252]" />
+
+              <div>
+                <span className="text-[9px] text-[#D8DEE9]/70 uppercase font-bold tracking-wider block">Total Tour Cost</span>
+                <span className="text-xs sm:text-sm font-black text-[#A3BE8C] font-mono">
+                  {activeTrip.currency} {totalTripEstimatedCost}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenAddModal}
+              className="px-3.5 py-1.5 rounded-xl gradient-accent hover:opacity-95 text-[#1A1E24] text-xs font-bold transition-all shadow-glow flex items-center gap-1.5 shrink-0 active:scale-95"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Full Form</span>
+            </button>
           </div>
         </div>
-
-        {/* Right: Estimated Cost Summary */}
-        <div className="flex items-center gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#2E3440] text-right">
-          <div>
-            <span className="text-[10px] text-[#D8DEE9]/70 uppercase font-medium block">Day {selectedDay} Cost</span>
-            <span className="text-sm font-bold text-[#ECEFF4] font-mono">
-              {activeTrip.currency} {dayEstimatedCost}
-            </span>
+      ) : (
+        <div className="glass-card rounded-2xl p-4 sm:p-5 border border-[#3B4252] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Left: Weather condition for this day/time */}
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-[#88C0D0]/10 text-[#88C0D0]">
+              {dayWeather?.precipitationProb && dayWeather.precipitationProb > 40 ? (
+                <CloudRain className="w-6 h-6 text-[#88C0D0]" />
+              ) : (
+                <Sun className="w-6 h-6 text-[#EBCB8B]" />
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#ECEFF4]">
+                  Day {selectedDay} • {getDayDateString(selectedDay)}
+                </h3>
+                {dayWeather && (
+                  <span className="px-2 py-0.5 rounded-md bg-[#1A1E24] text-xs font-semibold text-[#88C0D0]">
+                    {dayWeather.maxTemp}° / {dayWeather.minTemp}°C • {dayWeather.weatherDescription}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#D8DEE9] mt-0.5">
+                {dayWeather && dayWeather.precipitationProb > 40
+                  ? `⚠️ High chance of rain (${dayWeather.precipitationProb}%). Outdoor hill visits may be wet.`
+                  : '☀️ Favorable travel weather. Good visibility for sightseeing and outdoor photography.'}
+              </p>
+            </div>
           </div>
 
-          <div className="h-8 w-px bg-[#3B4252] hidden sm:block" />
+          {/* Right: Estimated Cost Summary */}
+          <div className="flex items-center gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#2E3440] text-right">
+            <div>
+              <span className="text-[10px] text-[#D8DEE9]/70 uppercase font-medium block">Day {selectedDay} Cost</span>
+              <span className="text-sm font-bold text-[#ECEFF4] font-mono">
+                {activeTrip.currency} {dayEstimatedCost}
+              </span>
+            </div>
 
-          <div>
-            <span className="text-[10px] text-[#D8DEE9]/70 uppercase font-medium block">Total Tour Cost</span>
-            <span className="text-sm font-bold text-[#A3BE8C] font-mono">
-              {activeTrip.currency} {totalTripEstimatedCost}
-            </span>
+            <div className="h-8 w-px bg-[#3B4252] hidden sm:block" />
+
+            <div>
+              <span className="text-[10px] text-[#D8DEE9]/70 uppercase font-medium block">Total Tour Cost</span>
+              <span className="text-sm font-bold text-[#A3BE8C] font-mono">
+                {activeTrip.currency} {totalTripEstimatedCost}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenAddModal}
+              className="px-4 py-2 rounded-xl gradient-accent hover:opacity-95 text-[#1A1E24] text-xs font-bold transition-all shadow-glow flex items-center gap-1.5 shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Full Form</span>
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="px-4 py-2.5 rounded-xl gradient-accent hover:opacity-95 text-[#1A1E24] text-xs font-bold transition-all shadow-glow flex items-center gap-1.5 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Full Form</span>
-          </button>
         </div>
-
-      </div>
+      )}
 
       {/* ========================================================= */}
       {/* DAY SCHEDULE: QUICK PLACE ADD BAR                        */}
       {/* ========================================================= */}
-      <div className="glass-card rounded-2xl p-4 border border-[#88C0D0]/25 bg-gradient-to-r from-[#242933]/95 via-[#2E3440]/90 to-[#242933]/95 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#88C0D0] uppercase tracking-wide">
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>Day {selectedDay} Schedule & Activities</span>
-          </div>
+      <div className="glass-card rounded-2xl p-3.5 sm:p-4 border border-[#88C0D0]/25 bg-gradient-to-r from-[#242933]/95 via-[#2E3440]/90 to-[#242933]/95 space-y-3">
+        {/* Header & Quick Action Buttons */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#88C0D0] uppercase tracking-wide">
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Day {selectedDay} Schedule & Activities</span>
+            </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
             {/* Auto-Calculate Day Timings Button */}
             {dayItems.length > 0 && (
               <button
                 type="button"
                 onClick={handleAutoCalculateDaySchedule}
-                className="px-3 py-1 rounded-xl bg-[#A3BE8C]/20 hover:bg-[#A3BE8C]/30 border border-[#A3BE8C]/40 text-[#A3BE8C] text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-                title="Automatically calculate day timings and transit durations based on mountain terrain & routes"
+                className="px-2.5 py-1 rounded-xl bg-[#A3BE8C]/20 hover:bg-[#A3BE8C]/30 border border-[#A3BE8C]/40 text-[#A3BE8C] text-[11px] font-bold flex items-center gap-1 transition-colors shadow-sm whitespace-nowrap shrink-0 active:scale-95"
+                title="Automatically calculate day timings and transit durations"
               >
                 <Zap className="w-3 h-3 text-[#A3BE8C]" />
-                <span>⚡ Auto-Calculate Day Timings</span>
+                <span>⚡ Auto-Calculate</span>
               </button>
             )}
+          </div>
 
+          {/* Quick Helper Shortcuts Bar */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar">
             {/* Link to Tourist Attraction Special Section */}
             {onOpenAttractions && (
               <button
                 type="button"
                 onClick={onOpenAttractions}
-                className="px-3 py-1 rounded-xl bg-[#EBCB8B]/15 hover:bg-[#EBCB8B]/25 border border-[#EBCB8B]/30 text-[#EBCB8B] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-2.5 py-1 rounded-xl bg-[#EBCB8B]/15 hover:bg-[#EBCB8B]/25 border border-[#EBCB8B]/30 text-[#EBCB8B] text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95"
                 title="Browse Tourist Attractions"
               >
                 <Compass className="w-3 h-3" />
@@ -596,15 +639,15 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <button
                 type="button"
                 onClick={() => setShowAttractionPicker(!showAttractionPicker)}
-                className="px-3 py-1 rounded-xl bg-[#88C0D0]/15 hover:bg-[#88C0D0]/25 border border-[#88C0D0]/30 text-[#88C0D0] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="px-2.5 py-1 rounded-xl bg-[#88C0D0]/15 hover:bg-[#88C0D0]/25 border border-[#88C0D0]/30 text-[#88C0D0] text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95"
               >
                 <Search className="w-3 h-3" />
-                <span>Pick {activeTrip.cityName} Landmark</span>
+                <span>Pick Landmark</span>
               </button>
 
               {/* Landmark Dropdown Menu */}
               {showAttractionPicker && (
-                <div className="absolute right-0 mt-2 w-72 sm:w-80 max-h-64 overflow-y-auto bg-[#242933] border border-[#3B4252] rounded-2xl shadow-2xl p-2 z-30 divide-y divide-[#2E3440]">
+                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-72 max-h-64 overflow-y-auto bg-[#242933] border border-[#3B4252] rounded-2xl shadow-2xl p-2 z-30 divide-y divide-[#2E3440]">
                   <div className="px-2 py-1 text-[11px] font-bold text-[#D8DEE9] uppercase">
                     Top Attractions in {activeTrip.cityName}
                   </div>
@@ -638,59 +681,119 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
           </div>
         </div>
 
-        {/* Quick Add Form */}
-        <form onSubmit={handleQuickAdd} className="flex flex-col sm:flex-row items-center gap-2">
-          {/* Time Picker */}
-          <input
-            type="time"
-            value={quickTime}
-            onChange={(e) => setQuickTime(e.target.value)}
-            className="w-full sm:w-36 shrink-0 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
-            title="Scheduled Time"
-          />
+        {/* Quick Add Form - Responsive Dual Layout */}
+        {isMobileView ? (
+          <form onSubmit={handleQuickAdd} className="space-y-2">
+            {/* Row 1: Full-Width Title / Activity Input */}
+            <input
+              type="text"
+              value={quickTitle}
+              onChange={(e) => setQuickTitle(e.target.value)}
+              placeholder={destinationSuggestions}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-medium focus:ring-2 focus:ring-[#88C0D0]"
+            />
 
-          {/* Place Title Input */}
-          <input
-            type="text"
-            value={quickTitle}
-            onChange={(e) => setQuickTitle(e.target.value)}
-            placeholder={destinationSuggestions}
-            className="flex-1 w-full px-4 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-medium focus:ring-2 focus:ring-[#88C0D0]"
-          />
+            {/* Row 2: Time, Category, Cost, and Add Button in comfortable 2x2 grid */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {/* Time Picker */}
+              <input
+                type="time"
+                value={quickTime}
+                onChange={(e) => setQuickTime(e.target.value)}
+                className="w-full px-2.5 py-2 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
+                title="Scheduled Time"
+              />
 
-          {/* Category Select */}
-          <select
-            value={quickCategory}
-            onChange={(e) => setQuickCategory(e.target.value as ActivityCategory)}
-            className="w-full sm:w-32 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs focus:ring-2 focus:ring-[#88C0D0]"
-          >
-            <option value="sightseeing">Sightseeing</option>
-            <option value="food">Food & Dining</option>
-            <option value="lodging">Hotel / Stay</option>
-            <option value="activity">Activity / Tour</option>
-            <option value="relaxation">Relaxation / Walk</option>
-            <option value="transport">Transit / Travel</option>
-          </select>
+              {/* Category Select */}
+              <select
+                value={quickCategory}
+                onChange={(e) => setQuickCategory(e.target.value as ActivityCategory)}
+                className="w-full px-2 py-2 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs focus:ring-2 focus:ring-[#88C0D0]"
+              >
+                <option value="sightseeing">Sightseeing</option>
+                <option value="food">Food & Dining</option>
+                <option value="lodging">Hotel / Stay</option>
+                <option value="activity">Activity / Tour</option>
+                <option value="relaxation">Relaxation / Walk</option>
+                <option value="transport">Transit / Travel</option>
+              </select>
 
-          {/* Cost input */}
-          <input
-            type="number"
-            min="0"
-            value={quickCost}
-            onChange={(e) => setQuickCost(e.target.value ? Number(e.target.value) : '')}
-            placeholder={`Cost (${activeTrip.currency})`}
-            className="w-full sm:w-28 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
-          />
+              {/* Cost input */}
+              <input
+                type="number"
+                min="0"
+                value={quickCost}
+                onChange={(e) => setQuickCost(e.target.value ? Number(e.target.value) : '')}
+                placeholder={`Cost (${activeTrip.currency})`}
+                className="w-full px-2.5 py-2 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
+              />
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#88C0D0] hover:bg-[#81A1C1] text-[#1A1E24] text-xs font-extrabold transition-all shadow-glow flex items-center justify-center gap-1.5 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add to Day {selectedDay}</span>
-          </button>
-        </form>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={!quickTitle.trim()}
+                className="w-full py-2 px-3 rounded-xl bg-[#88C0D0] hover:bg-[#81A1C1] text-[#1A1E24] text-xs font-extrabold transition-all shadow-glow flex items-center justify-center gap-1.5 disabled:opacity-40 active:scale-95 whitespace-nowrap"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Add to Day {selectedDay}</span>
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleQuickAdd} className="flex flex-col sm:flex-row items-center gap-2">
+            {/* Time Picker */}
+            <input
+              type="time"
+              value={quickTime}
+              onChange={(e) => setQuickTime(e.target.value)}
+              className="w-full sm:w-36 shrink-0 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
+              title="Scheduled Time"
+            />
+
+            {/* Place Title Input */}
+            <input
+              type="text"
+              value={quickTitle}
+              onChange={(e) => setQuickTitle(e.target.value)}
+              placeholder={destinationSuggestions}
+              className="flex-1 w-full px-4 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-medium focus:ring-2 focus:ring-[#88C0D0]"
+            />
+
+            {/* Category Select */}
+            <select
+              value={quickCategory}
+              onChange={(e) => setQuickCategory(e.target.value as ActivityCategory)}
+              className="w-full sm:w-32 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs focus:ring-2 focus:ring-[#88C0D0]"
+            >
+              <option value="sightseeing">Sightseeing</option>
+              <option value="food">Food & Dining</option>
+              <option value="lodging">Hotel / Stay</option>
+              <option value="activity">Activity / Tour</option>
+              <option value="relaxation">Relaxation / Walk</option>
+              <option value="transport">Transit / Travel</option>
+            </select>
+
+            {/* Cost input */}
+            <input
+              type="number"
+              min="0"
+              value={quickCost}
+              onChange={(e) => setQuickCost(e.target.value ? Number(e.target.value) : '')}
+              placeholder={`Cost (${activeTrip.currency})`}
+              className="w-full sm:w-28 px-3 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
+            />
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={!quickTitle.trim()}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#88C0D0] hover:bg-[#81A1C1] text-[#1A1E24] text-xs font-extrabold transition-all shadow-glow flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-40 active:scale-95 whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add to Day {selectedDay}</span>
+            </button>
+          </form>
+        )}
       </div>
 
       {/* ========================================================= */}
@@ -883,15 +986,20 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
       </div>
 
       {/* ========================================================= */}
-      {/* BOTTOM CONFIRMATION BANNER                                */}
+      {/* FINAL DAY-WISE PLANNING CONFIRMATION                       */}
       {/* ========================================================= */}
-      <div className="glass-card rounded-2xl p-4 sm:p-5 border border-[#A3BE8C]/30 bg-gradient-to-r from-[#242933] via-[#2E3440] to-[#242933] flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="space-y-1 text-center sm:text-left">
-          <h4 className="font-extrabold text-sm sm:text-base text-[#ECEFF4] flex items-center justify-center sm:justify-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#A3BE8C]" />
-            <span>Ready with your itinerary? Lock in your tour plan!</span>
+      <div className={`glass-card rounded-2xl p-4 sm:p-5 border border-[#88C0D0]/30 bg-gradient-to-r from-[#242933] via-[#2E3440] to-[#242933] ${
+        isMobileView ? 'flex flex-col items-stretch gap-3.5' : 'flex flex-col sm:flex-row items-center justify-between gap-4'
+      } shadow-xl`}>
+        <div className="space-y-1.5 text-left">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#A3BE8C]/15 border border-[#A3BE8C]/30 text-[#A3BE8C] text-[11px] font-bold whitespace-nowrap">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            <span>Day-Wise Planning Complete</span>
+          </div>
+          <h4 className="font-extrabold text-sm sm:text-base text-[#ECEFF4] leading-snug">
+            Ready with your itinerary? Lock in your tour plan!
           </h4>
-          <p className="text-xs text-[#D8DEE9]">
+          <p className="text-xs text-[#D8DEE9]/80 leading-relaxed">
             Confirm to view your finalized day-by-day travel schedule with transit notes and print/save options.
           </p>
         </div>
@@ -899,10 +1007,16 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
         <button
           type="button"
           onClick={confirmTripPlan}
-          className="px-6 py-3 rounded-2xl gradient-aurora hover:opacity-95 text-[#1A1E24] font-extrabold text-xs tracking-wide shadow-glow flex items-center gap-2 shrink-0 transition-all"
+          className={`${
+            isMobileView ? 'w-full py-3 px-5' : 'px-6 py-3 shrink-0'
+          } rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-glow flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap ${
+            activeTrip.isConfirmed
+              ? 'bg-[#A3BE8C] hover:bg-[#8FBCBB] text-[#1A1E24]'
+              : 'gradient-aurora hover:opacity-95 text-[#1A1E24]'
+          }`}
         >
-          <Check className="w-4 h-4" />
-          <span>Confirm & View Schedule</span>
+          <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+          <span>{activeTrip.isConfirmed ? '✓ Confirmed (View Schedule)' : '✓ Confirm & View Schedule'}</span>
         </button>
       </div>
 
@@ -1038,11 +1152,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
         </div>
       )}
 
-      {/* Ready-Made Tour Plans Modal */}
-      <ReadyMadeTourPlansModal
-        isOpen={isTourPlansModalOpen}
-        onClose={() => setIsTourPlansModalOpen(false)}
-      />
+
 
       {/* Confirmed Tour Plan Modal */}
       <TripConfirmedModal />

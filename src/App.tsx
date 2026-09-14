@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TripProvider, useTrip } from './context/TripContext';
+import { ViewModeProvider, useViewMode } from './context/ViewModeContext';
 import { Navbar } from './components/layout/Navbar';
 import { DestinationSearchHero } from './components/search/DestinationSearchHero';
 import { CityHero } from './components/dashboard/CityHero';
@@ -7,10 +8,12 @@ import { AttractionRecommendations } from './components/recommendations/Attracti
 import { ItineraryTimeline } from './components/itinerary/ItineraryTimeline';
 import { TravelExpenseCalculator } from './components/expense/TravelExpenseCalculator';
 import { FloatingAITourConcierge } from './components/assistant/FloatingAITourConcierge';
+import { MobileScreenWrapper } from './components/layout/MobileScreenWrapper';
 import { Calendar, Compass, ArrowLeft } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const { isSearchMode, activeTrip } = useTrip();
+  const { isMobileView } = useViewMode();
   const [activeSection, setActiveSection] = useState<'itinerary' | 'attractions'>('itinerary');
 
   return (
@@ -29,21 +32,21 @@ const MainContent: React.FC = () => {
             {/* Destination Hero Header with Local Time & Dates */}
             <CityHero />
 
-            {/* Special Section Tabs: Itinerary vs Tourist Attraction */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-2xl bg-[#242933]/80 border border-[#3B4252]">
-              <div className="flex items-center gap-2">
+            {/* Top Switcher Navigation */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1.5 rounded-2xl bg-[#242933]/90 border border-[#3B4252] backdrop-blur-md">
+              <div className={isMobileView ? "grid grid-cols-2 gap-1.5 w-full" : "flex items-center gap-2"}>
                 <button
                   type="button"
                   onClick={() => setActiveSection('itinerary')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all min-w-0 ${
                     activeSection === 'itinerary'
                       ? 'bg-[#88C0D0] text-[#1A1E24] shadow-glow font-extrabold'
                       : 'text-[#D8DEE9] hover:text-white hover:bg-[#2E3440]'
                   }`}
                 >
-                  <Calendar className="w-4 h-4" />
-                  <span>Itinerary Schedule</span>
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                  <Calendar className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{isMobileView ? 'Itinerary' : 'Day-by-Day Itinerary'}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono shrink-0 ${
                     activeSection === 'itinerary' ? 'bg-[#1A1E24]/25 text-[#1A1E24]' : 'bg-[#1A1E24] text-[#88C0D0]'
                   }`}>
                     {activeTrip.items.length}
@@ -53,17 +56,19 @@ const MainContent: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveSection('attractions')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all min-w-0 ${
                     activeSection === 'attractions'
                       ? 'bg-[#88C0D0] text-[#1A1E24] shadow-glow font-extrabold'
                       : 'text-[#D8DEE9] hover:text-white hover:bg-[#2E3440]'
                   }`}
                 >
-                  <Compass className="w-4 h-4 text-[#EBCB8B]" />
-                  <span>Tourist Attraction</span>
-                  <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[#EBCB8B]/20 text-[#EBCB8B]">
-                    Special Section
-                  </span>
+                  <Compass className="w-4 h-4 text-[#EBCB8B] shrink-0" />
+                  <span>{isMobileView ? 'Attractions' : `Tourist Attractions in ${activeTrip.cityName}`}</span>
+                  {!isMobileView && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#EBCB8B]/20 text-[#EBCB8B] text-[10px] font-bold">
+                      Special Section
+                    </span>
+                  )}
                 </button>
               </div>
 
@@ -71,10 +76,10 @@ const MainContent: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveSection('itinerary')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#88C0D0] hover:bg-[#2E3440] transition-colors"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#88C0D0] hover:bg-[#2E3440] transition-colors w-full sm:w-auto"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Return to Day Schedule</span>
+                  <span>Return to Schedule</span>
                 </button>
               )}
             </div>
@@ -135,7 +140,11 @@ const MainContent: React.FC = () => {
 export default function App() {
   return (
     <TripProvider>
-      <MainContent />
+      <ViewModeProvider>
+        <MobileScreenWrapper>
+          <MainContent />
+        </MobileScreenWrapper>
+      </ViewModeProvider>
     </TripProvider>
   );
 }
