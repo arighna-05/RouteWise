@@ -397,10 +397,10 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
   };
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       
       {/* Top Controls: Day Tabs and Paper Journal */}
-      <div className="space-y-2.5 pb-3 border-b border-[#2E3440]">
+      <div className={`space-y-2.5 pb-2 ${isMobileView ? '' : 'border-b border-[#2E3440]'}`}>
         
         {/* Day-Wise Tabs - Full Width Smooth Scroll */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
@@ -408,31 +408,37 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
             const isSelected = dayNum === selectedDay;
             const w = getWeatherForTripDay(weather, activeTrip.startDate, dayNum, activeTrip.city?.latitude);
 
+            const tabStyle = isMobileView
+              ? isSelected
+                ? 'bg-[#5D5FEF] text-white shadow-sm font-bold border-[#5D5FEF]'
+                : 'bg-white text-[#64748B] border-[#E4E7F2] hover:bg-[#F4F6FB]'
+              : isSelected
+                ? 'bg-[#88C0D0] text-[#1A1E24] shadow-glow border-[#88C0D0] font-bold'
+                : 'bg-[#242933] text-[#D8DEE9] hover:bg-[#2E3440] border-[#3B4252]';
+
+            const weatherBadgeStyle = isMobileView
+              ? isSelected ? 'bg-white/20 text-white' : 'bg-[#F2F4FA] text-[#5D5FEF]'
+              : isSelected ? 'bg-[#1A1E24]/20 text-[#1A1E24]' : 'bg-[#1A1E24] text-[#88C0D0]';
+
             return (
               <button
                 key={dayNum}
                 type="button"
                 onClick={() => setSelectedDay(dayNum)}
-                className={`px-3 py-2 rounded-xl text-left transition-all shrink-0 flex items-center gap-2 border ${
-                  isSelected
-                    ? 'bg-[#88C0D0] text-[#1A1E24] shadow-glow border-[#88C0D0] font-bold'
-                    : 'bg-[#242933] text-[#D8DEE9] hover:bg-[#2E3440] border-[#3B4252]'
-                }`}
+                className={`px-3 py-2 rounded-xl text-left transition-all shrink-0 flex items-center gap-2 border ${tabStyle}`}
               >
                 <div>
                   <div className="text-xs font-black tracking-wide uppercase">
                     Day {dayNum}
                   </div>
-                  <div className={`text-[10px] sm:text-[11px] ${isSelected ? 'text-[#1A1E24]/80 font-semibold' : 'text-[#D8DEE9]/70'}`}>
+                  <div className={`text-[10px] ${isMobileView ? (isSelected ? 'text-white/80' : 'text-[#94A3B8]') : (isSelected ? 'text-[#1A1E24]/70' : 'text-[#D8DEE9]/60')} font-medium`}>
                     {getDayDateString(dayNum)}
                   </div>
                 </div>
 
                 {/* Day Weather Pill */}
                 {w && (
-                  <div className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 ${
-                    isSelected ? 'bg-[#1A1E24]/20 text-[#1A1E24]' : 'bg-[#1A1E24] text-[#88C0D0]'
-                  }`}>
+                  <div className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 ${weatherBadgeStyle}`}>
                     <span>{w.maxTemp}°C</span>
                   </div>
                 )}
@@ -444,7 +450,11 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
           <button
             type="button"
             onClick={addDayToTrip}
-            className="p-2 rounded-xl bg-[#242933] border border-[#3B4252] text-[#D8DEE9] hover:text-white hover:bg-[#2E3440] transition-colors shrink-0"
+            className={`p-2 rounded-xl border transition-colors shrink-0 ${
+              isMobileView
+                ? 'bg-white border-[#E4E7F2] text-[#64748B] hover:text-[#1A1D2E] hover:bg-[#F4F6FB]'
+                : 'bg-[#242933] border-[#3B4252] text-[#D8DEE9] hover:text-white hover:bg-[#2E3440]'
+            }`}
             title="Add another day to tour"
           >
             <CalendarPlus className="w-4 h-4" />
@@ -453,7 +463,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
 
         {/* Action Row: Day Status & Paper Journal */}
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          <span className="text-[11px] font-semibold text-[#88C0D0]/85">
+          <span className={`text-[11px] font-semibold ${isMobileView ? 'text-[#7E859B]' : 'text-[#88C0D0]/85'}`}>
             Day {selectedDay} of {activeTrip.daysCount} • {activeTrip.cityName}
           </span>
           <button
@@ -473,29 +483,29 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
 
       {/* Day Overview Header with Weather & Costs */}
       {isMobileView ? (
-        <div className="glass-card rounded-2xl p-3.5 sm:p-5 border border-[#3B4252] space-y-3.5">
+        <div className="matte-card rounded-[24px] p-4 border border-[#E8ECF5] shadow-sm text-[#1A1D2E] space-y-3.5">
           {/* Weather condition and Day Title */}
           <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-xl bg-[#88C0D0]/10 text-[#88C0D0] shrink-0 mt-0.5">
+            <div className="p-2.5 rounded-xl bg-[#FFF4E5] text-[#F59E0B] shrink-0 mt-0.5">
               {dayWeather?.precipitationProb && dayWeather.precipitationProb > 40 ? (
-                <CloudRain className="w-5 h-5 text-[#88C0D0]" />
+                <CloudRain className="w-5 h-5 text-[#3B82F6]" />
               ) : (
-                <Sun className="w-5 h-5 text-[#EBCB8B]" />
+                <Sun className="w-5 h-5 text-[#F59E0B]" />
               )}
             </div>
 
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm sm:text-base font-extrabold text-[#ECEFF4] whitespace-nowrap">
+                <h3 className="text-sm sm:text-base font-extrabold text-[#1A1D2E] whitespace-nowrap">
                   Day {selectedDay} • {getDayDateString(selectedDay)}
                 </h3>
                 {dayWeather && (
-                  <span className="px-2 py-0.5 rounded-lg bg-[#1A1E24] text-[11px] font-semibold text-[#88C0D0] whitespace-nowrap border border-[#3B4252]/60">
+                  <span className="px-2 py-0.5 rounded-lg bg-[#F4F6FB] text-[11px] font-semibold text-[#5D5FEF] whitespace-nowrap border border-[#E2E6F0]">
                     {dayWeather.maxTemp}° / {dayWeather.minTemp}°C • {dayWeather.weatherDescription}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#D8DEE9]/80 leading-relaxed">
+              <p className="text-xs text-[#7E859B] leading-relaxed">
                 {dayWeather && dayWeather.precipitationProb > 40
                   ? `⚠️ High chance of rain (${dayWeather.precipitationProb}%). Outdoor hill visits may be wet.`
                   : '☀️ Favorable travel weather. Good visibility for sightseeing and outdoor photography.'}
@@ -504,20 +514,20 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
           </div>
 
           {/* Dedicated Cost Summary & Full Form Action Row */}
-          <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#2E3440]">
+          <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#F0F2F8]">
             <div className="flex items-center gap-3 sm:gap-5">
               <div>
-                <span className="text-[9px] text-[#D8DEE9]/70 uppercase font-bold tracking-wider block">Day {selectedDay} Cost</span>
-                <span className="text-xs sm:text-sm font-black text-[#ECEFF4] font-mono">
+                <span className="text-[9px] text-[#7E859B] uppercase font-bold tracking-wider block">Day {selectedDay} Cost</span>
+                <span className="text-xs sm:text-sm font-black text-[#1A1D2E] font-mono">
                   {activeTrip.currency} {dayEstimatedCost}
                 </span>
               </div>
 
-              <div className="h-6 w-px bg-[#3B4252]" />
+              <div className="h-6 w-px bg-[#E2E6F0]" />
 
               <div>
-                <span className="text-[9px] text-[#D8DEE9]/70 uppercase font-bold tracking-wider block">Total Tour Cost</span>
-                <span className="text-xs sm:text-sm font-black text-[#A3BE8C] font-mono">
+                <span className="text-[9px] text-[#7E859B] uppercase font-bold tracking-wider block">Total Tour Cost</span>
+                <span className="text-xs sm:text-sm font-black text-[#5D5FEF] font-mono">
                   {activeTrip.currency} {totalTripEstimatedCost}
                 </span>
               </div>
@@ -526,7 +536,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
             <button
               type="button"
               onClick={handleOpenAddModal}
-              className="px-3.5 py-1.5 rounded-xl gradient-accent hover:opacity-95 text-[#1A1E24] text-xs font-bold transition-all shadow-glow flex items-center gap-1.5 shrink-0 active:scale-95"
+              className="px-3.5 py-1.5 rounded-xl bg-[#5D5FEF] hover:bg-[#4D4FD9] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 shrink-0 active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Full Form</span>
@@ -596,11 +606,15 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
       {/* ========================================================= */}
       {/* DAY SCHEDULE: QUICK PLACE ADD BAR                        */}
       {/* ========================================================= */}
-      <div className="glass-card rounded-2xl p-3.5 sm:p-4 border border-[#88C0D0]/25 bg-gradient-to-r from-[#242933]/95 via-[#2E3440]/90 to-[#242933]/95 space-y-3">
+      <div className={
+        isMobileView 
+          ? "matte-card rounded-[24px] p-4 border border-[#E8ECF5] shadow-sm text-[#1A1D2E] space-y-3" 
+          : "glass-card rounded-2xl p-3.5 sm:p-4 border border-[#88C0D0]/25 bg-gradient-to-r from-[#242933]/95 via-[#2E3440]/90 to-[#242933]/95 space-y-3"
+      }>
         {/* Header & Quick Action Buttons */}
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#88C0D0] uppercase tracking-wide">
+            <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wide ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#88C0D0]'}`}>
               <Edit3 className="w-3.5 h-3.5" />
               <span>Day {selectedDay} Schedule & Activities</span>
             </div>
@@ -610,10 +624,14 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <button
                 type="button"
                 onClick={handleAutoCalculateDaySchedule}
-                className="px-2.5 py-1 rounded-xl bg-[#A3BE8C]/20 hover:bg-[#A3BE8C]/30 border border-[#A3BE8C]/40 text-[#A3BE8C] text-[11px] font-bold flex items-center gap-1 transition-colors shadow-sm whitespace-nowrap shrink-0 active:scale-95"
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-colors shadow-sm whitespace-nowrap shrink-0 active:scale-95 border ${
+                  isMobileView
+                    ? 'bg-[#EAFBF3] border-[#A3E5C3] text-[#00BA88] hover:bg-[#D7F7E8]'
+                    : 'bg-[#A3BE8C]/20 hover:bg-[#A3BE8C]/30 border-[#A3BE8C]/40 text-[#A3BE8C]'
+                }`}
                 title="Automatically calculate day timings and transit durations"
               >
-                <Zap className="w-3 h-3 text-[#A3BE8C]" />
+                <Zap className="w-3 h-3" />
                 <span>⚡ Auto-Calculate</span>
               </button>
             )}
@@ -626,7 +644,11 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <button
                 type="button"
                 onClick={onOpenAttractions}
-                className="px-2.5 py-1 rounded-xl bg-[#EBCB8B]/15 hover:bg-[#EBCB8B]/25 border border-[#EBCB8B]/30 text-[#EBCB8B] text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95"
+                className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95 border ${
+                  isMobileView
+                    ? 'bg-[#FFF4E5] border-[#FDE68A] text-[#D97706] hover:bg-[#FEF3C7]'
+                    : 'bg-[#EBCB8B]/15 hover:bg-[#EBCB8B]/25 border-[#EBCB8B]/30 text-[#EBCB8B]'
+                }`}
                 title="Browse Tourist Attractions"
               >
                 <Compass className="w-3 h-3" />
@@ -639,7 +661,11 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <button
                 type="button"
                 onClick={() => setShowAttractionPicker(!showAttractionPicker)}
-                className="px-2.5 py-1 rounded-xl bg-[#88C0D0]/15 hover:bg-[#88C0D0]/25 border border-[#88C0D0]/30 text-[#88C0D0] text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95"
+                className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 active:scale-95 border ${
+                  isMobileView
+                    ? 'bg-[#EEF0FF] border-[#E0E2FD] text-[#5D5FEF] hover:bg-[#E5E7FD]'
+                    : 'bg-[#88C0D0]/15 hover:bg-[#88C0D0]/25 border-[#88C0D0]/30 text-[#88C0D0]'
+                }`}
               >
                 <Search className="w-3 h-3" />
                 <span>Pick Landmark</span>
@@ -647,8 +673,12 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
 
               {/* Landmark Dropdown Menu */}
               {showAttractionPicker && (
-                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-72 max-h-64 overflow-y-auto bg-[#242933] border border-[#3B4252] rounded-2xl shadow-2xl p-2 z-30 divide-y divide-[#2E3440]">
-                  <div className="px-2 py-1 text-[11px] font-bold text-[#D8DEE9] uppercase">
+                <div className={`absolute left-0 sm:right-0 sm:left-auto mt-2 w-72 max-h-64 overflow-y-auto rounded-2xl shadow-2xl p-2 z-30 divide-y border ${
+                  isMobileView
+                    ? 'bg-white border-[#E2E6F0] divide-[#F0F2F8]'
+                    : 'bg-[#242933] border-[#3B4252] divide-[#2E3440]'
+                }`}>
+                  <div className={`px-2 py-1 text-[11px] font-bold uppercase ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]'}`}>
                     Top Attractions in {activeTrip.cityName}
                   </div>
                   {cityAttractions.length > 0 ? (
@@ -657,23 +687,33 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                         key={attr.id}
                         type="button"
                         onClick={() => handleAddLandmark(attr)}
-                        className="w-full p-2 text-left hover:bg-[#3B4252]/80 rounded-xl transition-colors flex items-start gap-2.5 group"
+                        className={`w-full p-2 text-left rounded-xl transition-colors flex items-start gap-2.5 group ${
+                          isMobileView ? 'hover:bg-[#F4F6FB]' : 'hover:bg-[#3B4252]/80'
+                        }`}
                       >
-                        <div className="p-1.5 rounded-lg bg-[#88C0D0]/15 text-[#88C0D0] group-hover:bg-[#88C0D0] group-hover:text-[#1A1E24] transition-colors shrink-0 mt-0.5 font-bold">
+                        <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 font-bold transition-colors ${
+                          isMobileView
+                            ? 'bg-[#EEF0FF] text-[#5D5FEF] group-hover:bg-[#5D5FEF] group-hover:text-white'
+                            : 'bg-[#88C0D0]/15 text-[#88C0D0] group-hover:bg-[#88C0D0] group-hover:text-[#1A1E24]'
+                        }`}>
                           <Plus className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs font-bold text-[#ECEFF4] truncate group-hover:text-[#88C0D0]">
+                          <div className={`text-xs font-bold truncate ${
+                            isMobileView
+                              ? 'text-[#1A1D2E] group-hover:text-[#5D5FEF]'
+                              : 'text-[#ECEFF4] group-hover:text-[#88C0D0]'
+                          }`}>
                             {attr.title}
                           </div>
-                          <div className="text-[10px] text-[#D8DEE9]/70 truncate">
+                          <div className={`text-[10px] truncate ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>
                             {attr.bestTimeToVisit || attr.openingHours} • {attr.currency} {attr.estimatedCost}
                           </div>
                         </div>
                       </button>
                     ))
                   ) : (
-                    <p className="p-3 text-xs text-[#D8DEE9]/70 text-center">Loading landmarks...</p>
+                    <p className={`p-3 text-xs text-center ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>Loading landmarks...</p>
                   )}
                 </div>
               )}
@@ -690,7 +730,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               value={quickTitle}
               onChange={(e) => setQuickTitle(e.target.value)}
               placeholder={destinationSuggestions}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-medium focus:ring-2 focus:ring-[#88C0D0]"
+              className="w-full px-3.5 py-2.5 rounded-xl matte-input text-xs font-medium"
             />
 
             {/* Row 2: Time, Category, Cost, and Add Button in comfortable 2x2 grid */}
@@ -700,7 +740,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                 type="time"
                 value={quickTime}
                 onChange={(e) => setQuickTime(e.target.value)}
-                className="w-full px-2.5 py-2 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
+                className="w-full px-2.5 py-2 rounded-xl matte-input text-xs font-mono"
                 title="Scheduled Time"
               />
 
@@ -708,7 +748,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
               <select
                 value={quickCategory}
                 onChange={(e) => setQuickCategory(e.target.value as ActivityCategory)}
-                className="w-full px-2 py-2 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] text-xs focus:ring-2 focus:ring-[#88C0D0]"
+                className="w-full px-2 py-2 rounded-xl matte-input text-xs"
               >
                 <option value="sightseeing">Sightseeing</option>
                 <option value="food">Food & Dining</option>
@@ -725,14 +765,14 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                 value={quickCost}
                 onChange={(e) => setQuickCost(e.target.value ? Number(e.target.value) : '')}
                 placeholder={`Cost (${activeTrip.currency})`}
-                className="w-full px-2.5 py-2 rounded-xl bg-[#1A1E24] border border-[#3B4252] text-[#ECEFF4] placeholder-[#4C566A] text-xs font-mono focus:ring-2 focus:ring-[#88C0D0]"
+                className="w-full px-2.5 py-2 rounded-xl matte-input text-xs font-mono"
               />
 
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={!quickTitle.trim()}
-                className="w-full py-2 px-3 rounded-xl bg-[#88C0D0] hover:bg-[#81A1C1] text-[#1A1E24] text-xs font-extrabold transition-all shadow-glow flex items-center justify-center gap-1.5 disabled:opacity-40 active:scale-95 whitespace-nowrap"
+                className="w-full py-2 px-3 rounded-xl bg-[#5D5FEF] hover:bg-[#4D4FD9] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-40 active:scale-95 whitespace-nowrap"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Add to Day {selectedDay}</span>
@@ -809,35 +849,49 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
 
           {/* Day Travel Time & Traffic Summary Banner */}
           {dayTransitStats && (
-            <div className="p-3 rounded-xl bg-[#1A1E24]/90 border border-[#3B4252] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 text-[#88C0D0] font-semibold">
-                <Route className="w-4 h-4 text-[#88C0D0] shrink-0" />
+            <div className={
+              isMobileView
+                ? "matte-card rounded-2xl p-3 border border-[#E8ECF5] shadow-xs flex flex-col gap-1.5 text-xs text-[#1A1D2E]"
+                : "p-3 rounded-xl bg-[#1A1E24]/90 border border-[#3B4252] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+            }>
+              <div className={`flex items-center gap-2 font-semibold ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#88C0D0]'}`}>
+                <Route className="w-4 h-4 shrink-0" />
                 <span>
-                  Estimated Day Travel Time: <strong className="text-[#ECEFF4] font-mono">{dayTransitStats.totalText}</strong> ({dayTransitStats.journeysCount} transit {dayTransitStats.journeysCount === 1 ? 'journey' : 'journeys'})
+                  Estimated Day Travel Time: <strong className={`font-mono ${isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'}`}>{dayTransitStats.totalText}</strong> ({dayTransitStats.journeysCount} transit {dayTransitStats.journeysCount === 1 ? 'journey' : 'journeys'})
                 </span>
               </div>
-              <div className="text-[11px] text-[#D8DEE9]/70 truncate">
+              <div className={`text-[11px] truncate ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>
                 {dayTransitStats.journeys.join(' • ')}
               </div>
             </div>
           )}
 
           {autoCalcMessage && (
-            <div className="p-2.5 rounded-xl bg-[#A3BE8C]/15 border border-[#A3BE8C]/30 text-[#A3BE8C] text-xs font-bold flex items-center gap-2 animate-in fade-in">
+            <div className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 animate-in fade-in ${
+              isMobileView
+                ? 'bg-[#EAFBF3] border-[#A3E5C3] text-[#00BA88]'
+                : 'bg-[#A3BE8C]/15 border-[#A3BE8C]/30 text-[#A3BE8C]'
+            }`}>
               <Check className="w-4 h-4" />
               <span>{autoCalcMessage}</span>
             </div>
           )}
 
           {dayItems.length === 0 ? (
-            <div className="glass-card rounded-2xl p-10 border border-dashed border-[#3B4252] text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#242933] text-[#D8DEE9] flex items-center justify-center mx-auto">
-                <Compass className="w-6 h-6 text-[#88C0D0]" />
+            <div className={
+              isMobileView
+                ? "matte-card rounded-[24px] p-8 border border-dashed border-[#CBD5E1] text-center space-y-3"
+                : "glass-card rounded-2xl p-10 border border-dashed border-[#3B4252] text-center space-y-3"
+            }>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto ${
+                isMobileView ? 'bg-[#EEF0FF] text-[#5D5FEF]' : 'bg-[#242933] text-[#D8DEE9]'
+              }`}>
+                <Compass className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-[#ECEFF4] text-sm">No places scheduled for Day {selectedDay} yet</h4>
-                <p className="text-xs text-[#D8DEE9] max-w-sm mx-auto">
-                  Add a place or activity above, pick from the landmark dropdown, or check the Gemini suggestions on the right.
+                <h4 className={`font-bold text-sm ${isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'}`}>No places scheduled for Day {selectedDay} yet</h4>
+                <p className={`text-xs max-w-sm mx-auto ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]'}`}>
+                  Add a place or activity above, pick from the landmark dropdown, or check the recommendations tab.
                 </p>
               </div>
             </div>
@@ -850,11 +904,17 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                 return (
                   <div
                     key={item.id}
-                    className={`glass-card rounded-2xl p-4 sm:p-5 border transition-all flex flex-col sm:flex-row sm:items-start justify-between gap-4 group ${
-                      item.completed
-                        ? 'border-[#A3BE8C]/30 bg-[#A3BE8C]/5 opacity-80'
-                        : 'border-[#3B4252] hover:border-[#4C566A]'
-                    }`}
+                    className={
+                      isMobileView
+                        ? `matte-card rounded-[22px] p-3.5 sm:p-4 border border-[#E8ECF5] shadow-sm text-[#1A1D2E] transition-all flex flex-col gap-3 group ${
+                            item.completed ? 'bg-[#F2FDF8] border-[#A3E5C3]' : 'hover:border-[#D1D5E8]'
+                          }`
+                        : `glass-card rounded-2xl p-4 sm:p-5 border transition-all flex flex-col sm:flex-row sm:items-start justify-between gap-4 group ${
+                            item.completed
+                              ? 'border-[#A3BE8C]/30 bg-[#A3BE8C]/5 opacity-80'
+                              : 'border-[#3B4252] hover:border-[#4C566A]'
+                          }`
+                    }
                   >
                     {/* Left Column: Time, Status, Title, Location */}
                     <div className="flex items-start gap-3.5 min-w-0 flex-1">
@@ -864,8 +924,8 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                         onClick={() => toggleActivityComplete(item.id)}
                         className={`mt-1 p-1 rounded-lg transition-colors shrink-0 ${
                           item.completed
-                            ? 'text-[#A3BE8C] bg-[#A3BE8C]/20'
-                            : 'text-[#4C566A] hover:text-[#ECEFF4] hover:bg-[#3B4252]'
+                            ? (isMobileView ? 'text-[#00BA88] bg-[#EAFBF3]' : 'text-[#A3BE8C] bg-[#A3BE8C]/20')
+                            : (isMobileView ? 'text-[#94A3B8] hover:text-[#1A1D2E]' : 'text-[#4C566A] hover:text-[#ECEFF4] hover:bg-[#3B4252]')
                         }`}
                         title={item.completed ? 'Mark as pending' : 'Mark as visited'}
                       >
@@ -875,12 +935,23 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                       <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           {/* Time Badge */}
-                          <span className="px-2 py-0.5 rounded-md bg-[#1A1E24] text-[#88C0D0] font-mono font-bold text-xs">
+                          <span className={`px-2 py-0.5 rounded-md font-mono font-bold text-xs ${
+                            isMobileView ? 'bg-[#F4F6FB] text-[#1A1D2E] border border-[#E2E6F0]' : 'bg-[#1A1E24] text-[#88C0D0]'
+                          }`}>
                             {item.time}
                           </span>
 
                           {/* Category Badge */}
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${getCategoryBadgeClass(item.category)}`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                            isMobileView
+                              ? (item.category === 'sightseeing' ? 'bg-[#EEF4FF] border-[#BFDBFE] text-[#2563EB]' :
+                                 item.category === 'food' ? 'bg-[#FFF4E5] border-[#FED7AA] text-[#D97706]' :
+                                 item.category === 'lodging' ? 'bg-[#ECFDF5] border-[#A7F3D0] text-[#059669]' :
+                                 item.category === 'transport' ? 'bg-[#F3E8FF] border-[#DDD6FE] text-[#7C3AED]' :
+                                 item.category === 'activity' ? 'bg-[#FDF2F8] border-[#FBCFE8] text-[#DB2777]' :
+                                 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]')
+                              : getCategoryBadgeClass(item.category)
+                          }`}>
                             {getCategoryIcon(item.category)}
                             <span className="capitalize">{item.category}</span>
                           </span>
@@ -897,7 +968,9 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                               <span>Check Hours/Weather</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#A3BE8C]/15 text-[#A3BE8C] border border-[#A3BE8C]/30 text-[10px] font-bold">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                              isMobileView ? 'bg-[#EAFBF3] border-[#A3E5C3] text-[#00BA88]' : 'bg-[#A3BE8C]/15 border-[#A3BE8C]/30 text-[#A3BE8C]'
+                            }`}>
                               <ShieldCheck className="w-3 h-3" />
                               <span>Open & Accessible</span>
                             </span>
@@ -905,35 +978,43 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                         </div>
 
                         {/* Spot Title */}
-                        <h4 className={`text-base font-bold leading-snug ${item.completed ? 'line-through text-[#D8DEE9]/50' : 'text-[#ECEFF4]'}`}>
+                        <h4 className={`text-base font-bold leading-snug ${
+                          item.completed 
+                            ? (isMobileView ? 'line-through text-[#94A3B8]' : 'line-through text-[#D8DEE9]/50')
+                            : (isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]')
+                        }`}>
                           {item.title}
                         </h4>
 
                         {/* Location */}
-                        <div className="flex items-center gap-1.5 text-xs text-[#D8DEE9]">
-                          <MapPin className="w-3.5 h-3.5 text-[#88C0D0] shrink-0" />
+                        <div className={`flex items-center gap-1.5 text-xs ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]'}`}>
+                          <MapPin className={`w-3.5 h-3.5 shrink-0 ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#88C0D0]'}`} />
                           <span className="truncate">{item.location}</span>
                         </div>
 
                         {/* Notes / Travel Journal text */}
                         {item.notes && (
-                          <p className="text-xs text-[#D8DEE9] italic pl-2 border-l-2 border-[#3B4252] mt-1">
+                          <p className={`text-xs italic pl-2 border-l-2 mt-1 ${
+                            isMobileView ? 'text-[#64748B] border-[#CBD5E1]' : 'text-[#D8DEE9] border-[#3B4252]'
+                          }`}>
                             "{item.notes}"
                           </p>
                         )}
 
                         {/* Visit Time Advice & Traffic/Transit Info */}
-                        <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px]">
+                        <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
                           {item.bestTimeToVisit && (
-                            <div className="flex items-center gap-1 text-[#EBCB8B] font-medium">
-                              <Clock className="w-3 h-3 text-[#EBCB8B] shrink-0" />
+                            <div className="flex items-center gap-1 text-[#D97706] font-medium">
+                              <Clock className="w-3 h-3 shrink-0" />
                               <span>Best Time: {item.bestTimeToVisit}</span>
                             </div>
                           )}
 
                           {item.transitInfo && (
-                            <div className="flex items-center gap-1 text-[#81A1C1] font-medium">
-                              <Car className="w-3 h-3 text-[#81A1C1] shrink-0" />
+                            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg font-medium ${
+                              isMobileView ? 'bg-[#EEF0FF] text-[#5D5FEF] border border-[#E0E2FD]' : 'text-[#81A1C1]'
+                            }`}>
+                              <Car className="w-3 h-3 shrink-0" />
                               <span>{item.transitInfo}</span>
                             </div>
                           )}
@@ -951,10 +1032,12 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                     </div>
 
                     {/* Right Column: Estimated Cost & Actions */}
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#2E3440]">
+                    <div className={`flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 ${
+                      isMobileView ? 'border-[#F0F2F8]' : 'border-[#2E3440]'
+                    }`}>
                       <div className="text-left sm:text-right">
-                        <span className="text-[10px] text-[#D8DEE9]/70 uppercase font-medium block">Est. Cost</span>
-                        <span className="text-xs font-bold text-[#A3BE8C] font-mono">
+                        <span className={`text-[10px] uppercase font-medium block ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/70'}`}>Est. Cost</span>
+                        <span className={`text-xs font-bold font-mono ${isMobileView ? 'text-[#5D5FEF]' : 'text-[#A3BE8C]'}`}>
                           {item.cost === 0 ? 'Free' : `${activeTrip.currency} ${item.cost}`}
                         </span>
                       </div>
@@ -963,7 +1046,9 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(item)}
-                          className="p-1.5 rounded-lg text-[#D8DEE9]/70 hover:text-white hover:bg-[#3B4252] transition-colors"
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isMobileView ? 'text-[#64748B] hover:text-[#1A1D2E] hover:bg-[#F4F6FB]' : 'text-[#D8DEE9]/70 hover:text-white hover:bg-[#3B4252]'
+                          }`}
                           title="Edit activity"
                         >
                           <Edit3 className="w-4 h-4" />
@@ -971,7 +1056,9 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
                         <button
                           type="button"
                           onClick={() => deleteActivity(item.id)}
-                          className="p-1.5 rounded-lg text-[#D8DEE9]/70 hover:text-[#BF616A] hover:bg-[#BF616A]/15 transition-colors"
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isMobileView ? 'text-[#64748B] hover:text-[#EF4444] hover:bg-[#FEE2E2]' : 'text-[#D8DEE9]/70 hover:text-[#BF616A] hover:bg-[#BF616A]/15'
+                          }`}
                           title="Delete activity"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -988,18 +1075,26 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
       {/* ========================================================= */}
       {/* FINAL DAY-WISE PLANNING CONFIRMATION                       */}
       {/* ========================================================= */}
-      <div className={`glass-card rounded-2xl p-4 sm:p-5 border border-[#88C0D0]/30 bg-gradient-to-r from-[#242933] via-[#2E3440] to-[#242933] ${
-        isMobileView ? 'flex flex-col items-stretch gap-3.5' : 'flex flex-col sm:flex-row items-center justify-between gap-4'
-      } shadow-xl`}>
+      <div className={
+        isMobileView
+          ? "matte-card rounded-[24px] p-4 sm:p-5 border border-[#E2E6F0] bg-white text-[#1A1D2E] flex flex-col items-stretch gap-3.5 shadow-sm"
+          : `glass-card rounded-2xl p-4 sm:p-5 border border-[#88C0D0]/30 bg-gradient-to-r from-[#242933] via-[#2E3440] to-[#242933] ${
+              isMobileView ? 'flex flex-col items-stretch gap-3.5' : 'flex flex-col sm:flex-row items-center justify-between gap-4'
+            } shadow-xl`
+      }>
         <div className="space-y-1.5 text-left">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#A3BE8C]/15 border border-[#A3BE8C]/30 text-[#A3BE8C] text-[11px] font-bold whitespace-nowrap">
+          <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap border ${
+            isMobileView
+              ? 'bg-[#EAFBF3] border-[#A3E5C3] text-[#00BA88]'
+              : 'bg-[#A3BE8C]/15 border-[#A3BE8C]/30 text-[#A3BE8C]'
+          }`}>
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
             <span>Day-Wise Planning Complete</span>
           </div>
-          <h4 className="font-extrabold text-sm sm:text-base text-[#ECEFF4] leading-snug">
+          <h4 className={`font-extrabold text-sm sm:text-base leading-snug ${isMobileView ? 'text-[#1A1D2E]' : 'text-[#ECEFF4]'}`}>
             Ready with your itinerary? Lock in your tour plan!
           </h4>
-          <p className="text-xs text-[#D8DEE9]/80 leading-relaxed">
+          <p className={`text-xs leading-relaxed ${isMobileView ? 'text-[#7E859B]' : 'text-[#D8DEE9]/80'}`}>
             Confirm to view your finalized day-by-day travel schedule with transit notes and print/save options.
           </p>
         </div>
@@ -1008,11 +1103,13 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ onOpenAttr
           type="button"
           onClick={confirmTripPlan}
           className={`${
-            isMobileView ? 'w-full py-3 px-5' : 'px-6 py-3 shrink-0'
-          } rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-glow flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap ${
-            activeTrip.isConfirmed
-              ? 'bg-[#A3BE8C] hover:bg-[#8FBCBB] text-[#1A1E24]'
-              : 'gradient-aurora hover:opacity-95 text-[#1A1E24]'
+            isMobileView ? 'w-full py-3.5 px-5' : 'px-6 py-3 shrink-0'
+          } rounded-2xl text-xs sm:text-sm font-bold tracking-wide flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap ${
+            isMobileView
+              ? 'bg-[#5D5FEF] hover:bg-[#4D4FD9] text-white shadow-md'
+              : (activeTrip.isConfirmed
+                  ? 'bg-[#A3BE8C] hover:bg-[#8FBCBB] text-[#1A1E24] shadow-glow'
+                  : 'gradient-aurora hover:opacity-95 text-[#1A1E24] shadow-glow')
           }`}
         >
           <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />

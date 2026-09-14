@@ -118,54 +118,56 @@ export const TravelExpenseCalculator: React.FC = () => {
   // =========================================================================
   // MOBILE VIEW: Sleek, Touch-Friendly, Accordion-Based Uncluttered UX
   // =========================================================================
+  // MOBILE VIEW: Sleek, Touch-Friendly, Accordion-Based Matte Modern UX
+  // =========================================================================
   if (isMobileView) {
     return (
-      <section className="p-3.5 sm:p-5 rounded-2xl glass-card border border-[#3B4252] shadow-xl space-y-3.5 text-left animate-in fade-in duration-300">
+      <section className="p-4 sm:p-5 rounded-[28px] matte-card border border-[#E8ECF5] shadow-sm space-y-4 text-left animate-in fade-in duration-300 text-[#1A1D2E]">
         
         {/* Header */}
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-[#88C0D0]/15 text-[#88C0D0] shrink-0">
+          <div className="p-2 rounded-xl bg-[#EEF0FF] text-[#5D5FEF] shrink-0">
             <Calculator className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-base sm:text-lg font-black text-[#ECEFF4] leading-tight">
+            <h3 className="text-base sm:text-lg font-black text-[#1A1D2E] leading-tight">
               Travel Expense Calculator
             </h3>
-            <p className="text-[11px] text-[#D8DEE9]/70 truncate">
+            <p className="text-[11px] text-[#7E859B] truncate">
               {headsCount} traveler(s) • {daysCount} days in {activeTrip.cityName}
             </p>
           </div>
         </div>
 
         {/* Hero Summary & Budget Card */}
-        <div className="bg-[#1A1E24] p-3.5 rounded-xl border border-[#3B4252]/80 space-y-3">
+        <div className="bg-[#F8F9FD] p-4 rounded-2xl border border-[#E2E6F0] space-y-3">
           {/* Row 1: Total & Per Person */}
           <div className="flex items-center justify-between gap-3">
             <div>
-              <span className="text-[10px] uppercase font-bold text-[#81A1C1] tracking-wider block">
+              <span className="text-[10px] uppercase font-bold text-[#7E859B] tracking-wider block">
                 Total Trip Expense
               </span>
-              <span className="text-xl sm:text-2xl font-black font-mono text-[#88C0D0] block">
+              <span className="text-xl sm:text-2xl font-black font-mono text-[#5D5FEF] block">
                 {currencySymbol} {totalCalculatedExpense.toLocaleString()}
               </span>
             </div>
 
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-[#D8DEE9]/70 tracking-wider block">
+              <span className="text-[10px] uppercase font-bold text-[#7E859B] tracking-wider block">
                 Cost Per Person
               </span>
-              <span className="text-sm sm:text-base font-bold font-mono text-[#ECEFF4] block">
+              <span className="text-sm sm:text-base font-bold font-mono text-[#1A1D2E] block">
                 {currencySymbol} {costPerHead.toLocaleString()}
               </span>
             </div>
           </div>
 
           {/* Row 2: Budget Status Comparison */}
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#242933] border border-[#2E3440] text-xs">
-            <div className="text-[#D8DEE9] text-[11px] sm:text-xs">
-              Budget: <strong className="text-[#ECEFF4] font-mono">{currencySymbol} {(activeTrip.budget || 0).toLocaleString()}</strong>
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E2E6F0] text-xs">
+            <div className="text-[#1A1D2E] text-[11px] sm:text-xs">
+              Budget: <strong className="font-mono">{currencySymbol} {(activeTrip.budget || 0).toLocaleString()}</strong>
             </div>
-            <div className={`flex items-center gap-1 font-bold text-[11px] sm:text-xs ${isUnderBudget ? 'text-[#A3BE8C]' : 'text-[#BF616A]'}`}>
+            <div className={`flex items-center gap-1 font-bold text-[11px] sm:text-xs ${isUnderBudget ? 'text-[#00BA88]' : 'text-[#EF4444]'}`}>
               {isUnderBudget ? <TrendingDown className="w-3.5 h-3.5" /> : <TrendingUp className="w-3.5 h-3.5" />}
               <span>
                 {isUnderBudget 
@@ -179,11 +181,11 @@ export const TravelExpenseCalculator: React.FC = () => {
           <button
             type="button"
             onClick={handleSyncToTripBudget}
-            className="w-full py-2.5 px-4 rounded-xl bg-[#88C0D0] hover:bg-[#81A1C1] text-[#1A1E24] font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+            className="w-full py-2.5 px-4 rounded-xl bg-[#5D5FEF] hover:bg-[#4D4FD9] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
           >
             {isSynced ? (
               <>
-                <Check className="w-4 h-4 text-[#1A1E24]" />
+                <Check className="w-4 h-4 text-white" />
                 <span>Saved to Trip Budget!</span>
               </>
             ) : (
@@ -197,14 +199,14 @@ export const TravelExpenseCalculator: React.FC = () => {
 
         {/* Category Breakdown Header */}
         <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-[#ECEFF4]">
-            <Layers className="w-3.5 h-3.5 text-[#88C0D0]" />
+          <div className="flex items-center gap-1.5 text-xs font-bold text-[#1A1D2E]">
+            <Layers className="w-3.5 h-3.5 text-[#5D5FEF]" />
             <span>Expense Categories</span>
           </div>
           <button
             type="button"
             onClick={toggleAll}
-            className="text-[11px] text-[#88C0D0] hover:underline font-semibold"
+            className="text-[11px] text-[#5D5FEF] hover:underline font-semibold"
           >
             {areAllExpanded ? 'Collapse All' : 'Expand All'}
           </button>
@@ -214,33 +216,33 @@ export const TravelExpenseCalculator: React.FC = () => {
         <div className="space-y-2">
 
           {/* 1. Hotel & Lodging */}
-          <div className="rounded-xl bg-[#1A1E24]/80 border border-[#2E3440] overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E8ECF5] overflow-hidden transition-all shadow-xs">
             <button
               type="button"
               onClick={() => toggleCategory('hotel')}
-              className="w-full p-3 flex items-center justify-between hover:bg-[#242933]/50 transition-colors text-left"
+              className="w-full p-3 flex items-center justify-between hover:bg-[#F8F9FD] transition-colors text-left"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-[#EBCB8B]/15 text-[#EBCB8B]">
+                <div className="p-1.5 rounded-lg bg-[#FFF4E5] text-[#F59E0B]">
                   <Hotel className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-[#ECEFF4] block">Hotel & Lodging</span>
-                  <span className="text-[10px] text-[#D8DEE9]/60">{hotelRooms} room(s) • {hotelNights} night(s)</span>
+                  <span className="text-xs font-bold text-[#1A1D2E] block">Hotel & Lodging</span>
+                  <span className="text-[10px] text-[#7E859B]">{hotelRooms} room(s) • {hotelNights} night(s)</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-[#EBCB8B]">
+                <span className="text-xs font-mono font-bold text-[#F59E0B]">
                   {currencySymbol} {totalHotelExpense.toLocaleString()}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-[#D8DEE9]/60 transition-transform duration-200 ${expandedCategories.hotel ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#94A3B8] transition-transform duration-200 ${expandedCategories.hotel ? 'rotate-180' : ''}`} />
               </div>
             </button>
 
             {expandedCategories.hotel && (
-              <div className="p-3 pt-1 space-y-2.5 border-t border-[#2E3440]/60 text-xs">
+              <div className="p-3 pt-1 space-y-2.5 border-t border-[#F0F2F8] bg-[#FAFBFE] text-xs">
                 <div>
-                  <label className="text-[10px] text-[#D8DEE9] uppercase font-semibold block mb-1">
+                  <label className="text-[10px] text-[#7E859B] uppercase font-semibold block mb-1">
                     Cost per Night ({currencySymbol})
                   </label>
                   <input
@@ -248,29 +250,29 @@ export const TravelExpenseCalculator: React.FC = () => {
                     min="0"
                     value={hotelCostPerNight}
                     onChange={(e) => setHotelCostPerNight(Math.max(0, Number(e.target.value)))}
-                    className="w-full px-3 py-1.5 rounded-xl bg-[#242933] border border-[#3B4252] text-[#ECEFF4] font-mono text-xs focus:ring-1 focus:ring-[#88C0D0]"
+                    className="w-full px-3 py-1.5 rounded-xl matte-input font-mono text-xs"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-[#D8DEE9] uppercase font-semibold block mb-1">Nights</label>
+                    <label className="text-[10px] text-[#7E859B] uppercase font-semibold block mb-1">Nights</label>
                     <input
                       type="number"
                       min="1"
                       value={hotelNights}
                       onChange={(e) => setHotelNights(Math.max(1, Number(e.target.value)))}
-                      className="w-full px-3 py-1.5 rounded-xl bg-[#242933] border border-[#3B4252] text-[#ECEFF4] font-mono text-xs"
+                      className="w-full px-3 py-1.5 rounded-xl matte-input font-mono text-xs"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-[#D8DEE9] uppercase font-semibold block mb-1">Rooms</label>
+                    <label className="text-[10px] text-[#7E859B] uppercase font-semibold block mb-1">Rooms</label>
                     <input
                       type="number"
                       min="1"
                       value={hotelRooms}
                       onChange={(e) => setHotelRooms(Math.max(1, Number(e.target.value)))}
-                      className="w-full px-3 py-1.5 rounded-xl bg-[#242933] border border-[#3B4252] text-[#ECEFF4] font-mono text-xs"
+                      className="w-full px-3 py-1.5 rounded-xl matte-input font-mono text-xs"
                     />
                   </div>
                 </div>
@@ -279,40 +281,40 @@ export const TravelExpenseCalculator: React.FC = () => {
           </div>
 
           {/* 2. Visiting Places & Sightseeing */}
-          <div className="rounded-xl bg-[#1A1E24]/80 border border-[#2E3440] overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E8ECF5] overflow-hidden transition-all shadow-xs">
             <button
               type="button"
               onClick={() => toggleCategory('sightseeing')}
-              className="w-full p-3 flex items-center justify-between hover:bg-[#242933]/50 transition-colors text-left"
+              className="w-full p-3 flex items-center justify-between hover:bg-[#F8F9FD] transition-colors text-left"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-[#88C0D0]/15 text-[#88C0D0]">
+                <div className="p-1.5 rounded-lg bg-[#EEF4FF] text-[#3B82F6]">
                   <Ticket className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-[#ECEFF4] block">Visiting Places</span>
-                  <span className="text-[10px] text-[#D8DEE9]/60">Itinerary spots & buffer</span>
+                  <span className="text-xs font-bold text-[#1A1D2E] block">Visiting Places</span>
+                  <span className="text-[10px] text-[#7E859B]">Itinerary spots & buffer</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-[#88C0D0]">
+                <span className="text-xs font-mono font-bold text-[#3B82F6]">
                   {currencySymbol} {totalSightseeingExpense.toLocaleString()}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-[#D8DEE9]/60 transition-transform duration-200 ${expandedCategories.sightseeing ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#94A3B8] transition-transform duration-200 ${expandedCategories.sightseeing ? 'rotate-180' : ''}`} />
               </div>
             </button>
 
             {expandedCategories.sightseeing && (
-              <div className="p-3 pt-1 space-y-2.5 border-t border-[#2E3440]/60 text-xs">
-                <div className="p-2 rounded-lg bg-[#242933] border border-[#2E3440] flex items-center justify-between text-xs">
-                  <span className="text-[#D8DEE9]">From Itinerary Items:</span>
-                  <span className="font-mono font-bold text-[#ECEFF4]">
+              <div className="p-3 pt-1 space-y-2.5 border-t border-[#F0F2F8] bg-[#FAFBFE] text-xs">
+                <div className="p-2 rounded-lg bg-white border border-[#E2E6F0] flex items-center justify-between text-xs">
+                  <span className="text-[#7E859B]">From Itinerary Items:</span>
+                  <span className="font-mono font-bold text-[#1A1D2E]">
                     {currencySymbol} {itineraryActivitiesCost.toLocaleString()}
                   </span>
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-[#D8DEE9] uppercase font-semibold block mb-1">
+                  <label className="text-[10px] text-[#7E859B] uppercase font-semibold block mb-1">
                     Extra Sightseeing / Entry Buffer ({currencySymbol})
                   </label>
                   <input
@@ -321,7 +323,7 @@ export const TravelExpenseCalculator: React.FC = () => {
                     value={extraSightseeingBuffer}
                     onChange={(e) => setExtraSightseeingBuffer(Math.max(0, Number(e.target.value)))}
                     placeholder="e.g. 500"
-                    className="w-full px-3 py-1.5 rounded-xl bg-[#242933] border border-[#3B4252] text-[#ECEFF4] font-mono text-xs focus:ring-1 focus:ring-[#88C0D0]"
+                    className="w-full px-3 py-1.5 rounded-xl matte-input font-mono text-xs"
                   />
                 </div>
               </div>
@@ -329,41 +331,41 @@ export const TravelExpenseCalculator: React.FC = () => {
           </div>
 
           {/* 3. Train / Plane / Transit Cost */}
-          <div className="rounded-xl bg-[#1A1E24]/80 border border-[#2E3440] overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E8ECF5] overflow-hidden transition-all shadow-xs">
             <button
               type="button"
               onClick={() => toggleCategory('transit')}
-              className="w-full p-3 flex items-center justify-between hover:bg-[#242933]/50 transition-colors text-left"
+              className="w-full p-3 flex items-center justify-between hover:bg-[#F8F9FD] transition-colors text-left"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-[#81A1C1]/15 text-[#81A1C1]">
+                <div className="p-1.5 rounded-lg bg-[#F3E8FF] text-[#8B5CF6]">
                   {transitMode === 'plane' ? <Plane className="w-4 h-4" /> : transitMode === 'train' ? <Train className="w-4 h-4" /> : <Car className="w-4 h-4" />}
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-[#ECEFF4] block">Train / Plane Transit</span>
-                  <span className="text-[10px] text-[#D8DEE9]/60 capitalize">{transitMode} transit</span>
+                  <span className="text-xs font-bold text-[#1A1D2E] block">Train / Plane Transit</span>
+                  <span className="text-[10px] text-[#7E859B] capitalize">{transitMode} transit</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-[#81A1C1]">
+                <span className="text-xs font-mono font-bold text-[#8B5CF6]">
                   {currencySymbol} {totalTransitExpense.toLocaleString()}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-[#D8DEE9]/60 transition-transform duration-200 ${expandedCategories.transit ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#94A3B8] transition-transform duration-200 ${expandedCategories.transit ? 'rotate-180' : ''}`} />
               </div>
             </button>
 
             {expandedCategories.transit && (
-              <div className="p-3 pt-1 space-y-2.5 border-t border-[#2E3440]/60 text-xs">
+              <div className="p-3 pt-1 space-y-2.5 border-t border-[#F0F2F8] bg-[#FAFBFE] text-xs">
                 <div className="flex items-center gap-1.5">
                   {(['train', 'plane', 'cab'] as const).map(mode => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => setTransitMode(mode)}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border ${
                         transitMode === mode
-                          ? 'bg-[#81A1C1] text-[#1A1E24] font-bold'
-                          : 'bg-[#242933] text-[#D8DEE9] hover:bg-[#2E3440]'
+                          ? 'bg-[#5D5FEF] text-white border-[#5D5FEF] font-bold'
+                          : 'bg-white text-[#64748B] border-[#E2E6F0] hover:bg-[#F4F6FB]'
                       }`}
                     >
                       {mode === 'plane' ? '✈️ Plane' : mode === 'train' ? '🚆 Train' : '🚗 Cab'}
@@ -372,7 +374,7 @@ export const TravelExpenseCalculator: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-[#D8DEE9] uppercase font-semibold block mb-1">
+                  <label className="text-[10px] text-[#7E859B] uppercase font-semibold block mb-1">
                     Cost per Person Round Trip ({currencySymbol})
                   </label>
                   <input
@@ -380,9 +382,9 @@ export const TravelExpenseCalculator: React.FC = () => {
                     min="0"
                     value={transitCostPerPerson}
                     onChange={(e) => setTransitCostPerPerson(Math.max(0, Number(e.target.value)))}
-                    className="w-full px-3 py-1.5 rounded-xl bg-[#242933] border border-[#3B4252] text-[#ECEFF4] font-mono text-xs focus:ring-1 focus:ring-[#81A1C1]"
+                    className="w-full px-3 py-1.5 rounded-xl matte-input font-mono text-xs"
                   />
-                  <div className="text-[10px] text-[#D8DEE9]/70 mt-1">
+                  <div className="text-[10px] text-[#7E859B] mt-1">
                     Total for {headsCount} traveler(s): {currencySymbol} {totalTransitExpense.toLocaleString()}
                   </div>
                 </div>
@@ -391,33 +393,33 @@ export const TravelExpenseCalculator: React.FC = () => {
           </div>
 
           {/* 4. Food & Dining */}
-          <div className="rounded-xl bg-[#1A1E24]/80 border border-[#2E3440] overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E8ECF5] overflow-hidden transition-all shadow-xs">
             <button
               type="button"
               onClick={() => toggleCategory('food')}
-              className="w-full p-3 flex items-center justify-between hover:bg-[#242933]/50 transition-colors text-left"
+              className="w-full p-3 flex items-center justify-between hover:bg-[#F8F9FD] transition-colors text-left"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-[#A3BE8C]/15 text-[#A3BE8C]">
+                <div className="p-1.5 rounded-lg bg-[#FFF0F3] text-[#FF4B72]">
                   <Utensils className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-[#ECEFF4] block">Food & Dining</span>
-                  <span className="text-[10px] text-[#D8DEE9]/60">{currencySymbol}{foodCostPerPersonDay} / person / day</span>
+                  <span className="text-xs font-bold text-[#1A1D2E] block">Food & Dining</span>
+                  <span className="text-[10px] text-[#7E859B]">{currencySymbol}{foodCostPerPersonDay} / person / day</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-[#A3BE8C]">
+                <span className="text-xs font-mono font-bold text-[#FF4B72]">
                   {currencySymbol} {totalFoodExpense.toLocaleString()}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-[#D8DEE9]/60 transition-transform duration-200 ${expandedCategories.food ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#94A3B8] transition-transform duration-200 ${expandedCategories.food ? 'rotate-180' : ''}`} />
               </div>
             </button>
 
             {expandedCategories.food && (
-              <div className="p-3 pt-1 space-y-2.5 border-t border-[#2E3440]/60 text-xs">
+              <div className="p-3 pt-1 space-y-2.5 border-t border-[#F0F2F8] bg-[#FAFBFE] text-xs">
                 <div>
-                  <label className="text-[10px] text-[#D8DEE9] uppercase font-semibold block mb-1">
+                  <label className="text-[10px] text-[#7E859B] uppercase font-semibold block mb-1">
                     Cost per Person per Day ({currencySymbol})
                   </label>
                   <input
@@ -425,10 +427,10 @@ export const TravelExpenseCalculator: React.FC = () => {
                     min="0"
                     value={foodCostPerPersonDay}
                     onChange={(e) => setFoodCostPerPersonDay(Math.max(0, Number(e.target.value)))}
-                    className="w-full px-3 py-1.5 rounded-xl bg-[#242933] border border-[#3B4252] text-[#ECEFF4] font-mono text-xs focus:ring-1 focus:ring-[#A3BE8C]"
+                    className="w-full px-3 py-1.5 rounded-xl matte-input font-mono text-xs"
                   />
                 </div>
-                <div className="text-[10px] text-[#D8DEE9]/70">
+                <div className="text-[10px] text-[#7E859B]">
                   {headsCount} heads × {daysCount} days × {currencySymbol}{foodCostPerPersonDay}
                 </div>
               </div>
@@ -436,33 +438,33 @@ export const TravelExpenseCalculator: React.FC = () => {
           </div>
 
           {/* 5. Miscellaneous & Shopping */}
-          <div className="rounded-xl bg-[#1A1E24]/80 border border-[#2E3440] overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E8ECF5] overflow-hidden transition-all shadow-xs">
             <button
               type="button"
               onClick={() => toggleCategory('misc')}
-              className="w-full p-3 flex items-center justify-between hover:bg-[#242933]/50 transition-colors text-left"
+              className="w-full p-3 flex items-center justify-between hover:bg-[#F8F9FD] transition-colors text-left"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-[#B48EAD]/15 text-[#B48EAD]">
+                <div className="p-1.5 rounded-lg bg-[#ECFDF5] text-[#00BA88]">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-[#ECEFF4] block">Miscellaneous & Shopping</span>
-                  <span className="text-[10px] text-[#D8DEE9]/60">Souvenirs & buffer</span>
+                  <span className="text-xs font-bold text-[#1A1D2E] block">Miscellaneous & Shopping</span>
+                  <span className="text-[10px] text-[#7E859B]">Souvenirs & buffer</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-[#B48EAD]">
+                <span className="text-xs font-mono font-bold text-[#00BA88]">
                   {currencySymbol} {totalMiscellaneousExpense.toLocaleString()}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-[#D8DEE9]/60 transition-transform duration-200 ${expandedCategories.misc ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#94A3B8] transition-transform duration-200 ${expandedCategories.misc ? 'rotate-180' : ''}`} />
               </div>
             </button>
 
             {expandedCategories.misc && (
-              <div className="p-3 pt-1 space-y-2.5 border-t border-[#2E3440]/60 text-xs">
+              <div className="p-3 pt-1 space-y-2.5 border-t border-[#F0F2F8] bg-[#FAFBFE] text-xs">
                 <div>
-                  <label className="text-[10px] text-[#D8DEE9] uppercase font-semibold block mb-1">
+                  <label className="text-[10px] text-[#7E859B] uppercase font-semibold block mb-1">
                     Shopping & Emergency Buffer ({currencySymbol})
                   </label>
                   <input
@@ -470,10 +472,10 @@ export const TravelExpenseCalculator: React.FC = () => {
                     min="0"
                     value={miscellaneousCost}
                     onChange={(e) => setMiscellaneousCost(Math.max(0, Number(e.target.value)))}
-                    className="w-full px-3 py-1.5 rounded-xl bg-[#242933] border border-[#3B4252] text-[#ECEFF4] font-mono text-xs focus:ring-1 focus:ring-[#B48EAD]"
+                    className="w-full px-3 py-1.5 rounded-xl matte-input font-mono text-xs"
                   />
                 </div>
-                <div className="text-[10px] text-[#D8DEE9]/70">
+                <div className="text-[10px] text-[#7E859B]">
                   Covers souvenirs, local taxis, tea stops & emergency buffer
                 </div>
               </div>
@@ -483,25 +485,25 @@ export const TravelExpenseCalculator: React.FC = () => {
         </div>
 
         {/* Bottom Percentage Distribution Bar */}
-        <div className="pt-2 border-t border-[#2E3440] flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-[#D8DEE9]/70">
+        <div className="pt-2 border-t border-[#F0F2F8] flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-[#7E859B]">
           <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EBCB8B]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
             Hotel {calcPercentage(totalHotelExpense)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#88C0D0]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
             Places {calcPercentage(totalSightseeingExpense)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#81A1C1]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
             Transit {calcPercentage(totalTransitExpense)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#A3BE8C]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF4B72]" />
             Food {calcPercentage(totalFoodExpense)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#B48EAD]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00BA88]" />
             Misc {calcPercentage(totalMiscellaneousExpense)}%
           </span>
         </div>

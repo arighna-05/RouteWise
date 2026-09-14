@@ -1,49 +1,76 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type DeviceMode = 'iphone' | 'compact' | 'full';
+export type DeviceType = 'mobile' | 'tablet' | 'desktop';
+export type OrientationType = 'portrait' | 'landscape';
 
-interface ViewModeContextType {
-  deviceMode: DeviceMode;
-  setDeviceMode: (mode: DeviceMode) => void;
+export interface ViewModeContextType {
+  deviceType: DeviceType;
   isMobileView: boolean;
+  isTabletView: boolean;
+  isDesktopView: boolean;
   isLandscape: boolean;
-  setIsLandscape: React.Dispatch<React.SetStateAction<boolean>>;
+  windowWidth: number;
+  windowHeight: number;
 }
 
 const ViewModeContext = createContext<ViewModeContextType | undefined>(undefined);
 
 export const ViewModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('routewise_device_mode');
-      if (saved === 'iphone' || saved === 'compact' || saved === 'full') {
-        return saved;
-      }
+      return { width: window.innerWidth, height: window.innerHeight };
     }
-    return 'iphone';
+    return { width: 1200, height: 800 };
   });
 
-  const [isLandscape, setIsLandscape] = useState<boolean>(false);
-  const [windowWidth, setWindowWidth] = useState<number>(() => 
-    typeof window !== 'undefined' ? window.innerWidth : 1200
-  );
-
   useEffect(() => {
-    localStorage.setItem('routewise_device_mode', deviceMode);
-  }, [deviceMode]);
+    // Clean up old simulated device storage key if any exists
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('routewise_device_mode');
+      } catch {
+        // ignore
+      }
+    }
 
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
   }, []);
 
-  // When deviceMode is 'iphone' or 'compact', it's mobile view.
-  // When deviceMode is 'full', it's mobile view ONLY if the actual screen width is < 768px.
-  const isMobileView = deviceMode === 'iphone' || deviceMode === 'compact' || windowWidth < 768;
+  const width = dimensions.width;
+  const height = dimensions.height;
+
+  // Viewport breakpoints
+  const isMobileView = width < 768;
+  const isTabletView = width >= 768 && width < 1024;
+  const isDesktopView = width >= 1024;
+  const isLandscape = width > height;
+
+  const deviceType: DeviceType = isMobileView ? 'mobile' : isTabletView ? 'tablet' : 'desktop';
 
   return (
-    <ViewModeContext.Provider value={{ deviceMode, setDeviceMode, isMobileView, isLandscape, setIsLandscape }}>
+    <ViewModeContext.Provider
+      value={{
+        deviceType,
+        isMobileView,
+        isTabletView,
+        isDesktopView,
+        isLandscape,
+        windowWidth: width,
+        windowHeight: height,
+      }}
+    >
       {children}
     </ViewModeContext.Provider>
   );
@@ -52,13 +79,18 @@ export const ViewModeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useViewMode = (): ViewModeContextType => {
   const context = useContext(ViewModeContext);
   if (!context) {
+    const width = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const height = typeof window !== 'undefined' ? window.innerHeight : 800;
     return {
-      deviceMode: 'full',
-      setDeviceMode: () => {},
-      isMobileView: typeof window !== 'undefined' ? window.innerWidth < 768 : false,
-      isLandscape: false,
-      setIsLandscape: () => {},
+      deviceType: width < 768 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop',
+      isMobileView: width < 768,
+      isTabletView: width >= 768 && width < 1024,
+      isDesktopView: width >= 1024,
+      isLandscape: width > height,
+      windowWidth: width,
+      windowHeight: height,
     };
   }
   return context;
 };
+
